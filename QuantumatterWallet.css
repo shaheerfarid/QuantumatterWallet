@@ -1818,3 +1818,1135 @@ body {
     transform: translateY(-8px);
   }
 }
+
+/* ==========================================================================
+   WEB APP LAYOUT
+   Desktop/laptop browsers. The colour theme is unchanged - every value here
+   comes from the --octo-* custom properties defined earlier in this file.
+   This layer only changes structure, density and spacing.
+
+   The original stylesheet simulated an iPhone: it locked the app to 100vh and
+   used `orientation: landscape` to draw a phone frame on a black backdrop.
+   A desktop monitor is always landscape, so those rules fired on every
+   desktop browser. Section 1 retires the simulation.
+   ========================================================================== */
+
+/* --- 0. Base styles for the web-app wrappers (all viewports) ------------- */
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--octo-orange-deep);
+  margin-bottom: 6px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  color: var(--octo-ink);
+}
+
+.page-sub {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--octo-muted);
+  margin-top: 6px;
+  max-width: 58ch;
+}
+
+.split,
+.split-main,
+.split-side,
+.home-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tx-figures {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tx-hint {
+  margin-top: 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--octo-muted);
+}
+
+.side-empty {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--octo-muted);
+}
+
+.side-empty strong {
+  color: var(--octo-orange-deep);
+}
+
+/* Once Quote has populated the gas form, drop the placeholder text */
+.gas-fields.show ~ .side-empty {
+  display: none;
+}
+
+.console-heading {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--octo-orange-deep);
+  margin-bottom: 10px;
+}
+
+.proof-status-icon {
+  text-align: center;
+  margin: 4px 0 14px;
+}
+
+.proof-status-icon:empty {
+  display: none;
+}
+
+.nav-brand {
+  display: none;
+}
+
+/* --- 0b. Leftovers from the original dark theme -------------------------- */
+/* These elements still carried white text from the old dark design, which
+   rendered invisible once the light Octopus theme took over the cards. */
+
+/* "ETH" unit sat white-on-white and overlapped the input text */
+.input-unit {
+  color: var(--octo-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-with-unit .input-field {
+  padding-right: 76px;
+}
+
+/* Gas parameter labels were invisible */
+.gas-field label {
+  color: var(--octo-muted);
+}
+
+/* Every row of the transaction receipt was invisible */
+.proof-label {
+  color: var(--octo-muted);
+}
+
+.proof-value {
+  color: var(--octo-ink);
+}
+
+.proof-value a {
+  color: var(--octo-orange-deep);
+}
+
+.tx-header {
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 18px 20px 26px;
+  font-size: 12px;
+  color: var(--octo-muted);
+}
+
+.app-footer span {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  word-break: break-all;
+}
+
+.tx-btn-step {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.26);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* --- 1. Retire the phone-frame simulation on desktop viewports ----------- */
+@media screen and (min-width: 900px) {
+  body::before,
+  .app-container::after,
+  .device-frame,
+  .status-bar,
+  .home-indicator {
+    display: none !important;
+  }
+
+  body {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    background: var(--octo-cream);
+  }
+
+  .app-wrapper,
+  .screen {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    background: var(--octo-cream);
+  }
+
+  .app-container {
+    height: auto;
+    min-height: 100vh;
+    padding-left: 248px; /* clears the fixed sidebar */
+  }
+
+  /* One scrollbar for the document, not one per page */
+  .page {
+    overflow: visible;
+    flex: none;
+  }
+}
+
+/* --- 2. Bottom tab bar becomes a full-height sidebar --------------------- */
+@media screen and (min-width: 900px) {
+  .wallet-nav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    transform: none;
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 26px 18px;
+    border: none;
+    border-right: 1px solid rgba(255, 106, 0, 0.18);
+    border-radius: 0;
+    background: linear-gradient(180deg, var(--octo-orange) 0%, var(--octo-orange-deep) 100%);
+    backdrop-filter: none;
+    box-shadow: 0 0 48px rgba(232, 93, 4, 0.16);
+    overflow-y: auto;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 6px;
+    margin-bottom: 24px;
+  }
+
+  .nav-brand-mark {
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .nav-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    min-width: 0;
+  }
+
+  .nav-brand-text strong {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-brand-text span {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 11.5px;
+  }
+
+  .wallet-nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 13px;
+    padding: 12px 14px;
+    border-radius: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.84);
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+
+  .wallet-nav-item span:first-child {
+    flex: none;
+    width: 22px;
+    text-align: center;
+    font-size: 18px;
+  }
+
+  .wallet-nav-item:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+  }
+
+  .wallet-nav-item.active {
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--octo-orange-deep);
+    font-weight: 800;
+    box-shadow: 0 6px 18px rgba(120, 45, 0, 0.18);
+  }
+
+  /* The raised "Top Up" pill becomes an outlined CTA in the rail */
+  .wallet-nav-item.nav-center {
+    transform: none;
+    margin-top: 8px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  .wallet-nav-item.nav-center:hover {
+    background: rgba(255, 255, 255, 0.26);
+  }
+
+  .wallet-nav-item.nav-center span:first-child {
+    font-size: 18px;
+  }
+}
+
+/* --- 3. Content column -------------------------------------------------- */
+@media screen and (min-width: 900px) {
+  .page {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 34px 36px 56px;
+    gap: 18px;
+  }
+
+  .page-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px 28px;
+    margin-bottom: 2px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .trade-tabs,
+  .activity-tabs {
+    margin-bottom: 0;
+    flex: none;
+  }
+
+  .section {
+    padding: 24px;
+    margin: 0;
+    border-radius: 18px;
+    box-shadow:
+      0 1px 2px rgba(60, 30, 0, 0.04),
+      0 10px 30px rgba(232, 93, 4, 0.06);
+  }
+
+  .section-title {
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+  }
+}
+
+/* --- 4. Home page: 12-column dashboard ---------------------------------- */
+/* Column spans only, no explicit rows: blocks flow in DOM order and wrap
+   predictably. Mixing explicit rows with auto-placement reorders the page. */
+@media screen and (min-width: 900px) {
+  .home-shell {
+    gap: 18px;
+  }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px;
+  }
+
+  .col-5  { grid-column: span 5; }
+  .col-6  { grid-column: span 6; }
+  .col-7  { grid-column: span 7; }
+  .col-12 { grid-column: span 12; }
+
+  .hero-topbar {
+    padding: 2px 2px 0;
+  }
+
+  .hero-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .hero-account-name {
+    font-size: 20px;
+  }
+
+  .wallet-search {
+    padding: 15px 18px;
+  }
+
+  /* Portfolio card sits beside the actions, so match their height and centre
+     the figure rather than letting space-between strand it */
+  /* Title, figure and hint read as one centred group rather than being
+     pushed to opposite ends of a tall card */
+  .hero-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+    padding: 26px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .hero-card .section-title {
+    margin-bottom: 14px;
+  }
+
+  .hero-card .portfolio-header {
+    text-align: left;
+    margin: 0;
+  }
+
+  .hero-card .reload-indicator {
+    margin-top: 18px;
+  }
+
+  .hero-card .cash-amount {
+    font-size: 42px;
+    letter-spacing: -0.028em;
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero-card .cash-currency {
+    margin-bottom: 0;
+  }
+
+  .hero-card .reload-indicator {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  .wallet-actions-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .wallet-action-card {
+    min-height: 104px;
+    border-radius: 16px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .wallet-action-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 106, 0, 0.34);
+  }
+
+  .octopus-banner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .octopus-banner h3 {
+    font-size: 20px;
+    max-width: 46ch;
+  }
+
+  .octopus-banner p {
+    max-width: 70ch;
+  }
+}
+
+/* --- 5. Asset rows ------------------------------------------------------ */
+@media screen and (min-width: 900px) {
+  .crypto-selector {
+    gap: 10px;
+  }
+
+  .crypto-btn {
+    padding: 15px 18px;
+    border-radius: 15px;
+    border-width: 1px;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .crypto-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 106, 0, 0.34);
+  }
+
+  .crypto-name {
+    font-size: 14.5px;
+  }
+
+  .crypto-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* --- 6. Trade / Activity: main column plus a working side column -------- */
+@media screen and (min-width: 900px) {
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+  }
+
+  .split-main,
+  .split-side {
+    gap: 18px;
+  }
+
+  .tx-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tx-crypto-name {
+    font-size: 19px;
+  }
+
+  .tx-details {
+    font-size: 12.5px;
+    word-break: break-all;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  }
+
+  .tx-figures {
+    margin-top: 4px;
+  }
+
+  .tx-balance {
+    font-size: 22px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tx-buttons {
+    margin: 18px 0 0;
+    gap: 10px;
+  }
+
+  .tx-btn {
+    flex-direction: row;
+    gap: 8px;
+    padding: 15px 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  }
+
+  .tx-btn-icon {
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .tx-btn:disabled {
+    opacity: 0.4;
+  }
+
+  .tx-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .wallet-tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .wallet-tool-card {
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .wallet-tool-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 106, 0, 0.34);
+  }
+
+  /* Gas parameters live inside a card now, so drop their own chrome */
+  .gas-fields {
+    margin: 0;
+  }
+
+  .gas-fields.show {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px 14px;
+  }
+
+  /* the grid gap owns the rhythm now */
+  .gas-field {
+    margin: 0;
+  }
+
+  .gas-fields .input-field {
+    margin: 0;
+  }
+
+  .gas-field label {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .gas-fields .input-field {
+    font-size: 13.5px;
+    padding: 11px 14px;
+  }
+}
+
+/* --- 7. Consoles and logs nested inside cards --------------------------- */
+@media screen and (min-width: 900px) {
+  .section > .console-log,
+  .section > .blockchain-console,
+  .section > .proof-details {
+    margin: 0;
+    max-height: 340px;
+    min-height: 180px;
+    padding: 14px;
+    border-radius: 13px;
+    background: var(--octo-cream);
+    border: 1px solid rgba(255, 106, 0, 0.1);
+    box-shadow: none;
+    font-size: 12px;
+  }
+
+  .section > .btn-primary + .blockchain-console,
+  .section > .proof-details + .btn-primary,
+  .section > .proof-status-icon + .proof-details {
+    margin-top: 14px;
+  }
+
+  .section > .btn-primary:first-of-type {
+    margin-top: 0;
+  }
+
+  .console-log::-webkit-scrollbar,
+  .blockchain-console::-webkit-scrollbar,
+  .proof-details::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .console-log::-webkit-scrollbar-thumb,
+  .blockchain-console::-webkit-scrollbar-thumb,
+  .proof-details::-webkit-scrollbar-thumb {
+    background: rgba(255, 106, 0, 0.26);
+    border-radius: 4px;
+  }
+
+  .log-entry {
+    font-size: 11.5px;
+    line-height: 1.5;
+    padding: 7px 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+  }
+
+  .log-entry.txdetails {
+    font-size: 11.5px;
+  }
+
+  .proof-row {
+    font-size: 13.5px;
+  }
+
+  .proof-value {
+    word-break: break-all;
+  }
+}
+
+/* --- 8. Login / unlock page: a centred card ----------------------------- */
+@media screen and (min-width: 900px) {
+  #accountPage {
+    max-width: 520px;
+    justify-content: center;
+    min-height: calc(100vh - 90px);
+  }
+
+  #accountPage .section {
+    width: 100%;
+  }
+}
+
+/* --- 9. Forms, buttons, modals ----------------------------------------- */
+@media screen and (min-width: 900px) {
+  .input-field {
+    font-size: 15px;
+    padding: 14px 18px;
+    border-width: 1px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    cursor: pointer;
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 14px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .modal-content {
+    width: min(100%, 520px);
+    max-height: 88vh;
+    overflow-y: auto;
+    border-radius: 22px;
+    padding: 28px;
+  }
+
+  .wallet-action-modal {
+    width: min(100%, 560px);
+  }
+
+  .popup-content {
+    width: min(100%, 780px);
+    max-height: 82vh;
+  }
+}
+
+/* --- 10. Wide screens --------------------------------------------------- */
+@media screen and (min-width: 1320px) {
+  .page {
+    max-width: 1320px;
+  }
+
+  .split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  /* Enough room for the gas form to run two-up */
+  .gas-fields.show {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-card .cash-amount {
+    font-size: 46px;
+  }
+}
+
+/* --- 11. Keyboard focus: web apps get tabbed through -------------------- */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.round-btn:focus-visible,
+.wallet-nav-item:focus-visible,
+.wallet-action-card:focus-visible,
+.wallet-tool-card:focus-visible,
+.crypto-btn:focus-visible,
+.tx-btn:focus-visible,
+.reload-btn:focus-visible,
+.input-field:focus-visible,
+.wallet-search input:focus-visible {
+  outline: 3px solid rgba(255, 106, 0, 0.45);
+  outline-offset: 2px;
+}
+
+.wallet-nav-item:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY & REFINEMENT
+   Sits last so it wins the cascade. Two goals:
+     1. A real type system - Plus Jakarta Sans for UI, JetBrains Mono for the
+        addresses, hashes and console output a wallet is full of.
+     2. Restraint with the accent. The Octopus palette is unchanged, but the
+        orange is now reserved for brand, primary actions and live state
+        instead of being applied to every label, icon and log line.
+   ========================================================================== */
+
+:root {
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Softer than the original 0 18px 50px - cards now sit on the page instead
+     of floating well above it */
+  --octo-shadow: 0 1px 2px rgba(72, 35, 0, 0.04), 0 8px 24px rgba(232, 93, 4, 0.07);
+
+  /* Structural neutrals, so labels no longer have to be orange to read */
+  --octo-label: #8a7a6e;
+  --octo-hairline: rgba(72, 35, 0, 0.1);
+
+  --radius-card: 16px;
+  --radius-inner: 12px;
+}
+
+/* --- Type ---------------------------------------------------------------- */
+
+body,
+.input-field,
+input,
+button,
+select,
+textarea {
+  font-family: var(--font-ui);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+
+/* Anything that is an address, a hash, or machine output */
+.tx-details,
+.console-log,
+.blockchain-console,
+.log-entry,
+.app-footer span,
+.crypto-address,
+.proof-value {
+  font-family: var(--font-mono);
+}
+
+/* Machine values typed into or rendered by form controls. In a proportional
+   face "0x" reads as "0×", which is wrong for an address prefix. */
+#recipientAddress,
+.gas-fields .input-field,
+.proof-value .btn-secondary,
+#qrAddress {
+  font-family: var(--font-mono);
+}
+
+.proof-value .btn-secondary {
+  font-size: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  word-break: break-all;
+  margin: 0;
+}
+
+.proof-row {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* Figures that line up in columns */
+.cash-amount,
+.crypto-value,
+.crypto-balance,
+.tx-balance,
+.tx-cash-value-small,
+.gas-fields .input-field {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Headings: 700 rather than 800, tighter tracking on display sizes ---- */
+
+.page-title {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.hero-account-name,
+.nav-brand-text strong,
+.cash-amount,
+.tx-crypto-name,
+.tx-balance,
+.modal h3,
+.octopus-banner h3 {
+  font-weight: 700;
+}
+
+.cash-amount {
+  letter-spacing: -0.03em;
+}
+
+/* Section labels step back: small, neutral, lightly tracked */
+.section-title,
+.hero-card .section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--octo-label);
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  color: var(--octo-orange-deep);
+}
+
+.octopus-banner-kicker {
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--octo-label);
+}
+
+/* --- Restraint: neutral structure, orange for action and state ---------- */
+
+/* Console lines were orange chips with orange rules - far too loud for
+   machine output. Now a quiet surface with a hairline. */
+.log-entry {
+  background: transparent;
+  border-left: 2px solid var(--octo-hairline);
+  border-radius: 0;
+  color: var(--octo-ink);
+  padding: 5px 0 5px 12px;
+  margin: 2px 0;
+}
+
+.log-entry.txdetails {
+  background: transparent;
+  border-left-color: rgba(28, 122, 82, 0.4);
+}
+
+.console-heading {
+  color: var(--octo-label);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+}
+
+/* Address line under each asset */
+.crypto-address {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--octo-label);
+  margin-top: 3px;
+}
+
+/* --- Icons --------------------------------------------------------------- */
+/* Inline SVG at a single stroke weight, replacing the mismatched unicode
+   glyphs that rendered at wildly different weights across the set. */
+
+.nav-icon,
+.wallet-action-icon {
+  display: grid;
+  place-items: center;
+}
+
+.nav-icon svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+.round-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.search-icon {
+  display: grid;
+  place-items: center;
+  color: var(--octo-label);
+}
+
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.wallet-action-icon svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+/* --- Consistent radii --------------------------------------------------- */
+
+.section,
+.hero-card,
+.reload-btn,
+.modal-content,
+.wallet-action-modal,
+.popup-content {
+  border-radius: var(--radius-card);
+}
+
+.crypto-btn,
+.wallet-action-card,
+.wallet-tool-card,
+.input-field,
+.btn-primary,
+.btn-secondary,
+.tx-btn,
+.gas-fields .input-field,
+.console-log,
+.blockchain-console,
+.proof-details,
+.wallet-search {
+  border-radius: var(--radius-inner);
+}
+
+.trade-tab,
+.activity-tab,
+.wallet-choice {
+  border-radius: 999px;
+}
+
+/* --- Weight and contrast tuning ----------------------------------------- */
+
+.crypto-name {
+  font-weight: 600;
+}
+
+.crypto-value {
+  font-weight: 600;
+}
+
+.btn-primary,
+.tx-btn,
+.wallet-tool-card,
+.wallet-action-card span:last-child {
+  font-weight: 600;
+}
+
+.trade-tab,
+.activity-tab {
+  font-weight: 600;
+}
+
+.tx-details {
+  font-size: 12px;
+  color: var(--octo-label);
+}
+
+.page-sub,
+.tx-hint,
+.side-empty,
+.octopus-banner p {
+  color: var(--octo-muted);
+}
+
+/* Card borders were pure orange tint on every edge; a neutral hairline reads
+   as structure rather than decoration */
+.section,
+.crypto-btn,
+.wallet-action-card,
+.wallet-tool-card,
+.wallet-search,
+.hero-card,
+.reload-btn {
+  border-color: var(--octo-hairline);
+}
+
+.crypto-btn.selected {
+  border-color: rgba(255, 106, 0, 0.45);
+}
+
+@media screen and (min-width: 900px) {
+  .page-title {
+    font-size: 30px;
+  }
+
+  .section-title {
+    margin-bottom: 16px;
+  }
+
+  .hero-card .cash-amount {
+    font-size: 40px;
+  }
+
+  /* Sidebar brand and items */
+  .nav-brand-text strong {
+    font-size: 14.5px;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-brand-text span {
+    font-size: 11px;
+    letter-spacing: 0.01em;
+  }
+
+  .wallet-nav-item {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  .wallet-nav-item.active {
+    font-weight: 700;
+  }
+
+  .console-log,
+  .blockchain-console,
+  .proof-details {
+    font-size: 11.5px;
+    background: var(--octo-paper);
+    border-color: var(--octo-hairline);
+  }
+
+  .log-entry {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .proof-label {
+    font-family: var(--font-ui);
+    font-weight: 500;
+  }
+
+  .proof-value {
+    font-size: 12.5px;
+  }
+}
+
+@media screen and (min-width: 1320px) {
+  .hero-card .cash-amount {
+    font-size: 44px;
+  }
+}

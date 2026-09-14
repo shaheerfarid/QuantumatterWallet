@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quantumatter Wallet - Quantum-Safe Crypto Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="QuantumatterWallet.css">
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
@@ -47,8 +50,8 @@
 
   <!-- Top Buttons -->
   <div class="top-buttons">
-    <button class="round-btn" id="scanBtn">𝄃𝄃𝄂𝄂𝄀𝄁</button>
-    <button class="round-btn" id="setupBtn">⚙️</button>
+    <button class="round-btn" id="scanBtn" aria-label="Scan QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8"/><path d="M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8"/><path d="M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16"/><path d="M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/><path d="M3 12h18"/></svg></button>
+    <button class="round-btn" id="setupBtn" aria-label="Wallet settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button>
   </div>
 
   <!-- Account Page -->
@@ -100,71 +103,76 @@
           </div>
         </div>
       <div class="hero-actions">
-          <button class="round-btn" id="homeScanBtn" aria-label="Scan QR">▣</button>
-          <button class="round-btn" id="homeSetupBtn" aria-label="Wallet settings">⚙</button>
+          <button class="round-btn" id="homeScanBtn" aria-label="Scan QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8"/><path d="M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8"/><path d="M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16"/><path d="M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/><path d="M3 12h18"/></svg></button>
+          <button class="round-btn" id="homeSetupBtn" aria-label="Wallet settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button>
         </div>
       </div>
 
       <label class="wallet-search" for="walletSearch">
-        <span>⌕</span>
+        <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
         <input type="search" id="walletSearch" placeholder="Search tokens, swaps, or dapps">
       </label>
 
-      <button class="reload-btn hero-card" id="reloadBalancesBtn">
-        <div class="section-title" id="portfolioTitle">Total Portfolio</div>
-        <div class="portfolio-header">
-          <div class="cash-amount" id="totalCashValue">$0.00</div>
-          <div class="cash-currency" id="selectedCurrency">Loading...</div>
+      <div class="home-grid">
+        <button class="reload-btn hero-card col-5" id="reloadBalancesBtn">
+          <div class="section-title" id="portfolioTitle">Total Portfolio</div>
+          <div class="portfolio-header">
+            <div class="cash-amount" id="totalCashValue">$0.00</div>
+            <div class="cash-currency" id="selectedCurrency">Loading...</div>
+          </div>
+          <div class="reload-indicator">↻ Tap to Reload Balances</div>
+        </button>
+
+        <div class="section col-7">
+          <div class="section-title">Quick Actions</div>
+          <div class="wallet-actions-grid">
+            <button class="wallet-action-card buy" id="depositBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg></span>
+              <span>Buy</span>
+            </button>
+            <button class="wallet-action-card swap" id="swapBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></svg></span>
+              <span>Swap</span>
+            </button>
+            <button class="wallet-action-card send" id="payBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8.5 7H17v8.5"/></svg></span>
+              <span>Send</span>
+            </button>
+            <button class="wallet-action-card receive" id="receiveBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17"/><path d="M15.5 17H7V8.5"/></svg></span>
+              <span>Receive</span>
+            </button>
+            <button class="wallet-action-card bridge" id="bridgeBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><path d="M7 8.5 3.5 12 7 15.5"/><path d="M17 8.5 20.5 12 17 15.5"/></svg></span>
+              <span>Bridge</span>
+            </button>
+            <button class="wallet-action-card earn" id="earnBtn">
+              <span class="wallet-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17.5 9.5 12l3.5 3.5L20 8"/><path d="M15.5 8H20v4.5"/></svg></span>
+              <span>Earn</span>
+            </button>
+          </div>
         </div>
-        <div class="reload-indicator">↻ Tap to Reload Balances</div>
-      </button>
 
-      <div class="wallet-actions-grid">
-        <button class="wallet-action-card buy" id="depositBtn">
-          <span class="wallet-action-icon">💳</span>
-          <span>Buy</span>
-        </button>
-        <button class="wallet-action-card swap" id="swapBtn">
-          <span class="wallet-action-icon">⇄</span>
-          <span>Swap</span>
-        </button>
-        <button class="wallet-action-card send" id="payBtn">
-          <span class="wallet-action-icon">➤</span>
-          <span>Send</span>
-        </button>
-        <button class="wallet-action-card receive" id="receiveBtn">
-          <span class="wallet-action-icon">▣</span>
-          <span>Receive</span>
-        </button>
-        <button class="wallet-action-card bridge" id="bridgeBtn">
-          <span class="wallet-action-icon">⟷</span>
-          <span>Bridge</span>
-        </button>
-        <button class="wallet-action-card earn" id="earnBtn">
-          <span class="wallet-action-icon">✦</span>
-          <span>Earn</span>
-        </button>
+        <div class="section col-6">
+          <div class="section-title">Current Accounts</div>
+          <div class="crypto-selector" id="currentAccountsSelector">
+            <!-- USDCq and ETHq will be populated here -->
+          </div>
+        </div>
+
+        <div class="section col-6">
+          <div class="section-title">Saving Accounts</div>
+          <div class="crypto-selector" id="savingAccountsSelector">
+            <!-- Ethereum, Bitcoin, Solana will be populated here -->
+          </div>
+        </div>
+
+        <div class="section octopus-banner col-12">
+          <div class="octopus-banner-kicker">Octopus Wallet Mode</div>
+          <h3>Buy, swap, bridge, and earn from one bright home screen.</h3>
+          <p>MetaMask-style actions, Binance-style market discovery, and an Octopus Limited palette.</p>
+        </div>
       </div>
-
-    <div class="section">
-      <div class="section-title">CURRENT ACCOUNTS</div>
-      <div class="crypto-selector" id="currentAccountsSelector">
-        <!-- USDCq and ETHq will be populated here -->
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">SAVING ACCOUNTS</div>
-      <div class="crypto-selector" id="savingAccountsSelector">
-        <!-- Ethereum, Bitcoin, Solana will be populated here -->
-      </div>
-    </div>
-
-    <div class="section octopus-banner">
-      <div class="octopus-banner-kicker">Octopus Wallet Mode</div>
-      <h3>Buy, swap, bridge, and earn from one bright home screen.</h3>
-      <p>MetaMask-style actions, Binance-style market discovery, and an Octopus Limited palette.</p>
-    </div>
 
     <button class="scroll-btn scroll-up" id="scrollUp2">↑</button>
     <button class="scroll-btn scroll-down" id="scrollDown2" style="display:none;">↓</button>
@@ -173,66 +181,82 @@
 
   <!-- Transaction Page -->
   <div class="page" id="transactionPage">
-    <div class="section trade-shell">
-      <div class="section-title">TRADE & TRANSFER</div>
+    <header class="page-head">
+      <div class="page-head-text">
+        <div class="page-eyebrow">Trade &amp; Transfer</div>
+        <h1 class="page-title">Send assets</h1>
+        <p class="page-sub">Send, swap, bridge, and route assets with wallet-style controls.</p>
+      </div>
       <div class="trade-tabs">
         <div class="trade-tab active">Exchange</div>
         <div class="trade-tab">Wallet</div>
       </div>
-      <div class="trade-banner">
-        <div>
-          <div class="trade-banner-label">One home for Web3</div>
-          <div class="trade-banner-copy">Send, swap, bridge, and route assets with wallet-style controls.</div>
+    </header>
+
+    <div class="split">
+      <div class="split-main">
+        <div class="section" id="txSectionHeader">
+          <div class="tx-header" id="txHeader">
+            <div class="tx-crypto-name" id="selectedCryptoName">Select Cryptocurrency</div>
+            <div class="tx-details" id="walletAddress">Wallet Address</div>
+            <div class="tx-figures">
+              <div class="tx-balance" id="walletBalance">Balance</div>
+              <div class="tx-cash-value-small" id="cashValueDisplay">$0.00</div>
+            </div>
+          </div>
         </div>
-        <div class="trade-banner-mark">◎</div>
+
+        <div class="section">
+          <div class="section-title">Amount for Recipient</div>
+          <div class="input-with-unit">
+            <input type="number" class="input-field" id="sendAmount" placeholder="Enter Send Amount" step="0.000001">
+            <span class="input-unit" id="amountUnit">ETH</span>
+          </div>
+          <input type="text" class="input-field" id="recipientAddress" placeholder="Enter recipient address">
+
+          <div class="tx-buttons">
+            <button class="tx-btn gas" id="gasBtn">
+              <span class="tx-btn-step" aria-hidden="true">1</span>
+              <span>Quote</span>
+            </button>
+            <button class="tx-btn sign" id="signBtn">
+              <span class="tx-btn-step" aria-hidden="true">2</span>
+              <span>Sign</span>
+            </button>
+            <button class="tx-btn send" id="sendBtn">
+              <span class="tx-btn-step" aria-hidden="true">3</span>
+              <span>Send</span>
+            </button>
+          </div>
+          <p class="tx-hint">Quote loads live network fees · Sign authorises through the HSM · Send broadcasts to the chain.</p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Shortcuts</div>
+          <div class="wallet-tools-grid">
+            <button class="wallet-tool-card" id="tradeSwapBtn">Swap Mode</button>
+            <button class="wallet-tool-card" id="tradeBridgeBtn">Bridge Mode</button>
+            <button class="wallet-tool-card" id="tradeReceiveBtn">Receive QR</button>
+            <button class="wallet-tool-card subtle" id="tradeBuyBtn">Buy Crypto</button>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="section" id="txSectionHeader">
-      <div class="tx-header" id="txHeader">
-        <div class="tx-crypto-name" id="selectedCryptoName">Select Cryptocurrency</div>
-        <div class="tx-details" id="walletAddress">Wallet Address</div>
-        <div class="tx-balance" id="walletBalance">Balance</div>
-        <div class="tx-cash-value-small" id="cashValueDisplay">$0.00</div>
-      </div>
-    </div>
+      <aside class="split-side">
+        <div class="section">
+          <div class="section-title">Network Fees</div>
+          <div class="gas-fields" id="gasFields">
+            <!-- Populated by JavaScript based on selected crypto -->
+          </div>
+          <p class="side-empty" id="gasEmpty">Tap <strong>Quote</strong> to load live gas parameters for the selected asset.</p>
+        </div>
 
-    <div class="section">
-      <div class="section-title">Amount for Recipient</div>
-      <div class="input-with-unit">
-        <input type="number" class="input-field" id="sendAmount" placeholder="Enter Send Amount" step="0.000001">
-        <span class="input-unit" id="amountUnit">ETH</span>
-      </div>
-      <input type="text" class="input-field" id="recipientAddress" placeholder="Enter recipient address">
+        <div class="section">
+          <div class="section-title">Transaction Log</div>
+          <div class="console-log" id="transactionLog"></div>
+        </div>
+      </aside>
     </div>
-
-    <div class="tx-buttons">
-      <button class="tx-btn gas" id="gasBtn">
-        <span>⛽</span>
-        <span>Quote</span>
-      </button>
-      <button class="tx-btn sign" id="signBtn">
-        <span>✍🏻</span>
-        <span>Sign</span>
-      </button>
-      <button class="tx-btn send" id="sendBtn">
-        <span>💸</span>
-        <span>Send</span>
-      </button>
-    </div>
-
-    <div class="wallet-tools-grid">
-      <button class="wallet-tool-card" id="tradeSwapBtn">Swap Mode</button>
-      <button class="wallet-tool-card" id="tradeBridgeBtn">Bridge Mode</button>
-      <button class="wallet-tool-card" id="tradeReceiveBtn">Receive QR</button>
-      <button class="wallet-tool-card subtle" id="tradeBuyBtn">Buy Crypto</button>
-    </div>
-
-    <div class="gas-fields" id="gasFields">
-      <!-- Populated by JavaScript based on selected crypto -->
-    </div>
-
-    <div class="console-log" id="transactionLog"></div>
 
     <button class="scroll-btn scroll-up" id="scrollUp3">↑</button>
     <button class="scroll-btn scroll-down" id="scrollDown3" style="display:none;">↓</button>
@@ -240,50 +264,71 @@
 
   <!-- Proof Page -->
   <div class="page" id="proofPage">
-    <div class="section">
-      <div class="section-title">ACTIVITY & DISCOVERY</div>
+    <header class="page-head">
+      <div class="page-head-text">
+        <div class="page-eyebrow">Activity</div>
+        <h1 class="page-title">Transactions &amp; proof</h1>
+        <p class="page-sub">Receipts from this session, past on-chain history, and the live block feed.</p>
+      </div>
       <div class="activity-tabs">
         <div class="activity-tab active">Transactions</div>
         <div class="activity-tab">Discover</div>
         <div class="activity-tab">NFTs</div>
       </div>
-      <div id="proofStatusIcon" style="text-align:center; margin: 10px 0 14px;"></div>
-      <button class="btn-primary" id="fetchTransactionsBtn">Fetch Past Transactions</button>
-      <div class="proof-details" id="proofDetails">
-        <!-- Populated by JavaScript -->
+    </header>
+
+    <div class="split">
+      <div class="split-main">
+        <div class="section">
+          <div class="section-title">Latest Transaction</div>
+          <div id="proofStatusIcon" class="proof-status-icon"></div>
+          <div class="proof-details" id="proofDetails">
+            <!-- Populated by JavaScript -->
+          </div>
+          <button class="btn-primary" id="fetchTransactionsBtn">Fetch Past Transactions</button>
+        </div>
       </div>
-    </div>
 
-    <div class="section">
-      <button class="btn-primary" id="listenBtn">Listen to Quantum Proof</button>
-    </div>
-
-    <div class="blockchain-console" id="blockchainConsole">
-      <div style="color: #00ffe7; font-weight: bold; margin-bottom: 10px;">Blockchain Activity Console Log</div>
+      <aside class="split-side">
+        <div class="section">
+          <div class="section-title">Quantum Proof Feed</div>
+          <button class="btn-primary" id="listenBtn">Listen to Quantum Proof</button>
+          <div class="blockchain-console" id="blockchainConsole">
+            <div class="console-heading">Blockchain Activity Console Log</div>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <button class="scroll-btn scroll-up" id="scrollUp4">↑</button>
   </div>
 
   <nav class="wallet-nav" id="walletNav" aria-label="Wallet navigation">
+    <div class="nav-brand">
+      <div class="nav-brand-mark" aria-hidden="true">Q</div>
+      <div class="nav-brand-text">
+        <strong>Quantumatter</strong>
+        <span>Octopus Wallet</span>
+      </div>
+    </div>
     <button class="wallet-nav-item active" data-page="0">
-      <span>◌</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span>
       <span>Profile</span>
     </button>
     <button class="wallet-nav-item" data-page="1">
-      <span>⌂</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.75 20v-5.5h4.5V20"/></svg></span>
       <span>Home</span>
     </button>
     <button class="wallet-nav-item nav-center" id="topUpNavBtn">
-      <span>＋</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
       <span>Top Up</span>
     </button>
     <button class="wallet-nav-item" data-page="2">
-      <span>⇄</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></svg></span>
       <span>Trade</span>
     </button>
     <button class="wallet-nav-item" data-page="3">
-      <span>◔</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg></span>
       <span>Activity</span>
     </button>
   </nav>
@@ -358,9 +403,9 @@
   </div>
 
   <!-- Footer with Besu API URL -->
-  <footer style="text-align: center; margin-top: 20px; font-size: 0.75em; color: #888;">
-    Besu API URL: <span style="font-family: 'Fira Mono', monospace;">https://us-central1-quantumatterwallet.cloudfunctions.net/besupost'</span>
-  </footer>  
+  <footer class="app-footer">
+    Besu API URL: <span>https://us-central1-quantumatterwallet.cloudfunctions.net/besupost</span>
+  </footer>
 
   <script>   
     // Global Constants
@@ -447,6 +492,9 @@
 
       const currentPageEl = pages[pageIndex];
       if (currentPageEl) currentPageEl.scrollTop = 0;
+      // On desktop the document scrolls rather than the page element, so reset
+      // the window too - otherwise switching tabs keeps the previous scroll depth.
+      window.scrollTo({ top: 0, behavior: 'auto' });
 
       document.querySelectorAll('.wallet-nav-item[data-page]').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.page) === pageIndex);
@@ -996,7 +1044,7 @@
         <div class="crypto-info">
           <div class="crypto-name">${crypto.name}</div>
           <div class="crypto-balance">${balanceDisplay} ${crypto.symbol}</div>
-          <div class="crypto-balance" style="font-size: 10px; color: #a0aec0;">
+          <div class="crypto-address">
             ${address.length > 20 ? address.substring(0, 10) + '...' + address.substring(address.length - 8) : address}
           </div>
         </div>
