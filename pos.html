@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Articulator AI - Point of Sale (Demo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <!-- Loaded for the shared --octo-* design tokens only; pos.css owns this page's layout -->
+  <link rel="stylesheet" href="QuantumatterWallet.css">
+  <link rel="stylesheet" href="pos.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+</head>
+<body>
+
+  <header class="pos-topbar">
+    <div class="pos-brand">
+      <div class="pos-brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="13" rx="2"/><path d="M3 9h18"/><path d="M8 20h8"/>
+        </svg>
+      </div>
+      <div class="pos-brand-text">
+        <strong>Articulator AI</strong>
+        <span>Point of Sale &middot; Demo</span>
+      </div>
+    </div>
+
+    <div class="pos-topbar-meta">
+      <span class="pos-chip" title="Merchant receiving address">
+        Merchant <span class="mono" id="chipMerchant">&mdash;</span>
+      </span>
+      <span class="pos-chip">
+        <span class="pos-dot" id="chainDot"></span>
+        <span id="chainLabel">Connecting&hellip;</span>
+      </span>
+    </div>
+  </header>
+
+  <main class="pos-shell">
+
+    <!-- ============ LEFT: catalogue + settings ============ -->
+    <div class="pos-col">
+
+      <div class="pos-notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/>
+        </svg>
+        <div>
+          <strong>Demo build.</strong> This shows the on-chain payment loop only. YedPay is
+          not wired in (no credentials yet) and the HKUST QR method is not applied (no spec
+          yet) &mdash; the QR below uses the plain payload the wallet already understands.
+          <strong>HKDq</strong> is a placeholder: it currently points at the existing USDCq
+          test contract until a real HKD stablecoin contract address is provided.
+        </div>
+      </div>
+
+      <section class="pos-card">
+        <div class="pos-card-head">
+          <div>
+            <div class="pos-label">Catalogue</div>
+            <p class="pos-hint" style="margin-top:6px;">Select a piece to raise a payment request.</p>
+          </div>
+          <button class="btn-secondary" id="resetCatalogBtn" style="width:auto;margin:0;padding:9px 14px;font-size:12.5px;">Reset demo</button>
+        </div>
+        <div class="pos-catalog" id="catalogGrid"></div>
+      </section>
+
+      <section class="pos-card">
+        <div class="pos-card-head">
+          <div class="pos-label">Terminal settings</div>
+        </div>
+        <div class="pos-settings">
+          <div class="pos-field">
+            <label for="cfgMerchant">Merchant receiving address</label>
+            <input type="text" class="input-field" id="cfgMerchant" spellcheck="false">
+          </div>
+          <div class="pos-field">
+            <label for="cfgContract">HKDq token contract</label>
+            <input type="text" class="input-field" id="cfgContract" spellcheck="false">
+          </div>
+          <div class="pos-field">
+            <label for="cfgRpc">Besu JSON-RPC endpoint</label>
+            <input type="text" class="input-field" id="cfgRpc" spellcheck="false">
+          </div>
+          <div class="pos-field">
+            <label for="cfgDecimals">Token decimals</label>
+            <input type="number" class="input-field" id="cfgDecimals" min="0" max="18">
+          </div>
+        </div>
+        <label class="pos-toggle" for="cfgSimulate" style="margin-top:14px;">
+          <input type="checkbox" id="cfgSimulate">
+          <span>Simulation mode &mdash; fake the incoming payment instead of watching the chain</span>
+        </label>
+        <p class="pos-hint" style="margin-top:10px;">
+          Leave simulation on if the Besu node or a funded wallet isn't available. The
+          simulated payment runs through the exact same confirmation code path as a real one.
+        </p>
+      </section>
+
+      <section class="pos-card">
+        <div class="pos-card-head">
+          <div class="pos-label">Chain watcher</div>
+          <span class="pos-hint" id="watcherState">Idle</span>
+        </div>
+        <div class="pos-log" id="posLog"></div>
+      </section>
+
+    </div>
+
+    <!-- ============ RIGHT: checkout ============ -->
+    <div class="pos-col pos-col-side">
+      <section class="pos-card">
+        <div class="pos-card-head">
+          <div class="pos-label">Checkout</div>
+        </div>
+        <div id="checkoutBody">
+          <div class="pos-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 20h1M17 21v-1"/>
+            </svg>
+            <div>No item selected.<br>Pick a piece from the catalogue to generate a payment QR.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+<script>
+  /* ======================================================================
+     Articulator AI - POS terminal (demo)
+
+     Flow this demonstrates:
+       1. Merchant selects an artwork.
+       2. Terminal renders a QR holding {address, amount} - the exact payload
+          the customer wallet's scanner already parses (see index.html
+          startCameraScan).
+       3. Customer scans, signs and sends HKDq from their wallet.
+       4. This terminal watches the chain for an ERC-20 Transfer INTO the
+          merchant address and confirms the payment.
+       5. The piece is marked sold.
+
+     Step 4 is the part that does not exist anywhere else in the project - it
+     is the actual reason a POS is needed. Everything else reuses patterns the
+     wallet already has.
+     ====================================================================== */
+
+  // keccak256("Transfer(address,address,uint256)") - same constant the wallet uses
+  const ERC_TRANSFER_SIG = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+  const POLL_MS = 5000;
+
+  const cfg = {
+    rpc: 'https://us-central1-quantumatterwallet.cloudfunctions.net/besupost',
+    // Placeholder: real HKD stablecoin contract still to be supplied
+    tokenContract: '0x229aCcf70c4B4403670a5d0643e5A67Fd38c014d',
+    merchantAddress: '0x8a03Cd8Fdb225Fe1A74e94C3b6d193F3ABAE52D5',
+    decimals: 6,
+    symbol: 'HKDq',
+    simulate: true
+  };
+
+  // Fictional catalogue - abstract CSS thumbnails, no stock imagery
+  const CATALOG = [
+    { id: 'ART-041', title: 'Tidal Drift No. 4',   kind: 'Original',        price: 1200, art: 'linear-gradient(140deg,#123b5e,#2f7fa8 45%,#f2c078)' },
+    { id: 'ART-052', title: 'Harbour Lights',      kind: 'Print edition',   price: 850,  art: 'linear-gradient(200deg,#2b1a3d,#a8437a 55%,#ffb26b)' },
+    { id: 'ART-067', title: 'Kowloon Static',      kind: 'Original + NFT',  price: 2400, art: 'linear-gradient(35deg,#0f2027,#3c6e71 40%,#d9d9d9)' },
+    { id: 'ART-074', title: 'Paper Lantern Study', kind: 'Derivative',      price: 450,  art: 'linear-gradient(160deg,#7a2e1d,#e07a35 50%,#ffe0b5)' },
+    { id: 'ART-088', title: 'Monsoon Field',       kind: 'Original',        price: 3100, art: 'linear-gradient(120deg,#1b3a2f,#4f8f6b 45%,#c7dfa0)' },
+    { id: 'ART-095', title: 'Neon Ferry',          kind: 'Print edition',   price: 680,  art: 'linear-gradient(220deg,#131a3a,#5b3fa8 50%,#ff7bb0)' }
+  ];
+
+  const state = {
+    selected: null,
+    sold: new Set(),
+    watching: false,
+    timer: null,
+    fromBlock: null,
+    seenTx: new Set()
+  };
+
+  /* ---------------- small helpers ---------------- */
+
+  const $ = id => document.getElementById(id);
+  const shorten = a => a && a.length > 16 ? a.slice(0, 8) + '…' + a.slice(-6) : (a || '—');
+  const hexToBig = h => BigInt(h && h !== '0x' ? h : '0x0');
+  const toBlockHex = n => '0x' + Number(n).toString(16);
+
+  // ERC-20 Transfer indexes `to` as topic[2], left-padded to 32 bytes
+  const addressTopic = addr => '0x' + '0'.repeat(24) + addr.replace(/^0x/, '').toLowerCase();
+
+  function fmtHKD(n) {
+    return new Intl.NumberFormat('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  }
+
+  function log(msg, kind) {
+    const el = document.createElement('div');
+    el.className = 'pos-log-line' + (kind ? ' ' + kind : '');
+    el.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+    $('posLog').appendChild(el);
+    $('posLog').scrollTop = $('posLog').scrollHeight;
+  }
+
+  async function rpc(method, params) {
+    const res = await fetch(cfg.rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method, params, id: Date.now() })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'RPC error');
+    return data.result;
+  }
+
+  /* ---------------- catalogue ---------------- */
+
+  function renderCatalog() {
+    const grid = $('catalogGrid');
+    grid.innerHTML = '';
+
+    CATALOG.forEach(item => {
+      const sold = state.sold.has(item.id);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pos-item'
+        + (state.selected && state.selected.id === item.id ? ' is-active' : '')
+        + (sold ? ' is-sold' : '');
+      btn.disabled = sold;
+      btn.innerHTML = `
+        <div class="pos-thumb" style="background:${item.art}"></div>
+        <div class="pos-item-body">
+          <div class="pos-item-title">${item.title}</div>
+          <div class="pos-item-kind">${item.id} &middot; ${item.kind}</div>
+          ${sold
+            ? '<span class="pos-sold-tag">Sold</span>'
+            : `<div class="pos-item-price">HK$ ${fmtHKD(item.price)}</div>`}
+        </div>`;
+      if (!sold) btn.addEventListener('click', () => selectItem(item));
+      grid.appendChild(btn);
+    });
+  }
+
+  /* ---------------- checkout ---------------- */
+
+  function selectItem(item) {
+    state.selected = item;
+    renderCatalog();
+    renderCheckout('waiting');
+    startWatcher();
+  }
+
+  function paymentPayload(item) {
+    // Exactly the shape index.html startCameraScan() expects
+    return JSON.stringify({ address: cfg.merchantAddress, amount: String(item.price) });
+  }
+
+  function renderCheckout(status, receipt) {
+    const item = state.selected;
+    if (!item) return;
+    const payload = paymentPayload(item);
+
+    const statusBlock = status === 'paid'
+      ? `<div class="pos-status paid">
+           <span class="pos-status-icon">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+           </span>
+           <span>Payment confirmed on-chain</span>
+         </div>`
+      : `<div class="pos-status waiting">
+           <span class="pos-status-icon"><span class="pos-spinner"></span></span>
+           <span>Waiting for payment&hellip;</span>
+         </div>`;
+
+    const receiptBlock = receipt ? `
+      <dl class="pos-receipt">
+        <div class="pos-receipt-row"><dt>Transaction</dt><dd>${receipt.txHash}</dd></div>
+        <div class="pos-receipt-row"><dt>Block</dt><dd>${receipt.block}</dd></div>
+        <div class="pos-receipt-row"><dt>From</dt><dd>${receipt.from}</dd></div>
+        <div class="pos-receipt-row"><dt>Received</dt><dd>${fmtHKD(receipt.value)} ${cfg.symbol}</dd></div>
+      </dl>` : '';
+
+    $('checkoutBody').innerHTML = `
+      <div class="pos-summary">
+        <div class="pos-label">${item.id} &middot; ${item.kind}</div>
+        <div class="pos-summary-title">${item.title}</div>
+        <div class="pos-amount">HK$ ${fmtHKD(item.price)}<small>${cfg.symbol}</small></div>
+      </div>
+
+      ${status === 'paid' ? '' : `
+      <div class="pos-qr-wrap">
+        <canvas id="posQrCanvas"></canvas>
+        <div class="pos-payload">${payload}</div>
+      </div>`}
+
+      ${statusBlock}
+      ${receiptBlock}
+
+      <div class="pos-actions">
+        ${status === 'paid'
+          ? '<button class="btn-primary" id="newSaleBtn">New sale</button>'
+          : `<button class="btn-secondary" id="cancelSaleBtn">Cancel</button>
+             ${cfg.simulate ? '<button class="btn-primary" id="simulatePayBtn">Simulate payment</button>' : ''}`}
+      </div>`;
+
+    if (status !== 'paid') {
+      QRCode.toCanvas($('posQrCanvas'), payload, {
+        width: 190, margin: 2,
+        color: { dark: '#1f1f24', light: '#ffffff' }
+      }, err => { if (err) console.error('QR render failed', err); });
+
+      $('cancelSaleBtn').addEventListener('click', cancelSale);
+      const sim = $('simulatePayBtn');
+      if (sim) sim.addEventListener('click', simulatePayment);
+    } else {
+      $('newSaleBtn').addEventListener('click', cancelSale);
+    }
+  }
+
+  function cancelSale() {
+    state.selected = null;
+    stopWatcher();
+    renderCatalog();
+    $('checkoutBody').innerHTML = `
+      <div class="pos-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 20h1M17 21v-1"/>
+        </svg>
+        <div>No item selected.<br>Pick a piece from the catalogue to generate a payment QR.</div>
+      </div>`;
+  }
+
+  /* ---------------- the watcher: the actual POS job ---------------- */
+
+  async function startWatcher() {
+    stopWatcher();
+    state.seenTx.clear();
+    state.watching = true;
+    $('watcherState').textContent = cfg.simulate ? 'Simulation mode' : 'Watching chain';
+
+    if (cfg.simulate) {
+      log('Simulation mode - not polling the chain. Use "Simulate payment".');
+      return;
+    }
+
+    try {
+      state.fromBlock = Number(hexToBig(await rpc('eth_blockNumber', []))) + 1;
+      log(`Watching ${cfg.symbol} transfers to ${shorten(cfg.merchantAddress)} from block ${state.fromBlock}`);
+    } catch (err) {
+      log('Could not read block height: ' + err.message, 'warn');
+      $('watcherState').textContent = 'Chain unreachable';
+      return;
+    }
+
+    state.timer = setInterval(pollForPayment, POLL_MS);
+    pollForPayment();
+  }
+
+  function stopWatcher() {
+    if (state.timer) clearInterval(state.timer);
+    state.timer = null;
+    state.watching = false;
+    $('watcherState').textContent = 'Idle';
+  }
+
+  async function pollForPayment() {
+    if (!state.watching || !state.selected) return;
+
+    try {
+      const latest = Number(hexToBig(await rpc('eth_blockNumber', [])));
+      if (latest < state.fromBlock) return;
+
+      // Filter server-side: Transfer events on our token, indexed `to` = merchant.
+      // Far cheaper than walking every block like the wallet's listener does.
+      const logs = await rpc('eth_getLogs', [{
+        fromBlock: toBlockHex(state.fromBlock),
+        toBlock: toBlockHex(latest),
+        address: cfg.tokenContract,
+        topics: [ERC_TRANSFER_SIG, null, addressTopic(cfg.merchantAddress)]
+      }]);
+
+      state.fromBlock = latest + 1;
+      if (logs.length) log(`Found ${logs.length} incoming transfer(s) up to block ${latest}`);
+      logs.forEach(handleTransferLog);
+    } catch (err) {
+      log('Poll error: ' + err.message, 'warn');
+    }
+  }
+
+  // Shared by the live watcher and the simulator, so the demo exercises the
+  // same confirmation logic a real payment would.
+  function handleTransferLog(entry) {
+    if (!state.selected) return;
+    if (state.seenTx.has(entry.transactionHash)) return;
+    state.seenTx.add(entry.transactionHash);
+
+    const raw = hexToBig(entry.data);
+    const value = Number(raw) / Math.pow(10, cfg.decimals);
+    const from = '0x' + String(entry.topics[1]).slice(26);
+    const expected = state.selected.price;
+
+    log(`Transfer ${fmtHKD(value)} ${cfg.symbol} from ${shorten(from)} (tx ${shorten(entry.transactionHash)})`);
+
+    if (value + 1e-9 < expected) {
+      log(`Underpaid: expected ${fmtHKD(expected)}, got ${fmtHKD(value)} - ignoring`, 'warn');
+      return;
+    }
+
+    log(`Payment satisfied for ${state.selected.id} - releasing piece`, 'hit');
+    completeSale({
+      txHash: entry.transactionHash,
+      block: entry.blockNumber ? Number(hexToBig(entry.blockNumber)) : '—',
+      from, value
+    });
+  }
+
+  function completeSale(receipt) {
+    state.sold.add(state.selected.id);
+    stopWatcher();
+    renderCatalog();
+    renderCheckout('paid', receipt);
+    // Next step for a real build: transfer the NFT / record ownership here.
+  }
+
+  function simulatePayment() {
+    if (!state.selected) return;
+    const raw = BigInt(Math.round(state.selected.price * Math.pow(10, cfg.decimals)));
+    handleTransferLog({
+      transactionHash: '0x' + Array.from({ length: 64 }, () => '0123456789abcdef'[Math.random() * 16 | 0]).join(''),
+      blockNumber: toBlockHex(284190 + Math.floor(Math.random() * 40)),
+      topics: [ERC_TRANSFER_SIG, addressTopic('0x29F780C62F75DCCc7fF6f43f7e319E4da870a3C7'), addressTopic(cfg.merchantAddress)],
+      data: '0x' + raw.toString(16).padStart(64, '0')
+    });
+  }
+
+  /* ---------------- settings + chain status ---------------- */
+
+  function bindSettings() {
+    const map = {
+      cfgMerchant: ['merchantAddress', v => v.trim()],
+      cfgContract: ['tokenContract', v => v.trim()],
+      cfgRpc: ['rpc', v => v.trim()],
+      cfgDecimals: ['decimals', v => Math.max(0, Math.min(18, Number(v) || 0))]
+    };
+    Object.entries(map).forEach(([id, [key, parse]]) => {
+      const el = $(id);
+      el.value = cfg[key];
+      el.addEventListener('change', () => {
+        cfg[key] = parse(el.value);
+        if (key === 'merchantAddress') $('chipMerchant').textContent = shorten(cfg.merchantAddress);
+        log(`Setting changed: ${key} = ${cfg[key]}`);
+        if (state.selected) renderCheckout('waiting');
+      });
+    });
+
+    const sim = $('cfgSimulate');
+    sim.checked = cfg.simulate;
+    sim.addEventListener('change', () => {
+      cfg.simulate = sim.checked;
+      log('Simulation mode ' + (cfg.simulate ? 'on' : 'off'));
+      if (state.selected) { renderCheckout('waiting'); startWatcher(); }
+    });
+
+    $('resetCatalogBtn').addEventListener('click', () => {
+      state.sold.clear();
+      cancelSale();
+      log('Demo reset - all pieces available again');
+    });
+  }
+
+  async function checkChain() {
+    try {
+      const bn = Number(hexToBig(await rpc('eth_blockNumber', [])));
+      $('chainDot').className = 'pos-dot online';
+      $('chainLabel').textContent = 'Besu block ' + bn;
+    } catch (err) {
+      $('chainDot').className = 'pos-dot offline';
+      $('chainLabel').textContent = 'Chain offline';
+    }
+  }
+
+  /* ---------------- boot ---------------- */
+
+  window.addEventListener('load', () => {
+    $('chipMerchant').textContent = shorten(cfg.merchantAddress);
+    bindSettings();
+    renderCatalog();
+    log('POS terminal ready');
+    log(`Token ${cfg.symbol} @ ${shorten(cfg.tokenContract)} (${cfg.decimals} decimals)`);
+    checkChain();
+    setInterval(checkChain, 15000);
+  });
+</script>
+
+</body>
+</html>

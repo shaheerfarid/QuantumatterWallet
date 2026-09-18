@@ -1,0 +1,606 @@
+/* ==========================================================================
+   Articulator AI - Point of Sale terminal (demo)
+
+   Merchant-facing companion to the customer wallet. Loads QuantumatterWallet.css
+   first purely for the shared --octo-* design tokens and web fonts, then defines
+   its own layout: this is a different application to the wallet, so it gets a
+   horizontal terminal chrome rather than the wallet's sidebar.
+   ========================================================================== */
+
+body {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  background: var(--octo-cream);
+  color: var(--octo-ink);
+  font-family: var(--font-ui);
+  align-items: stretch;
+}
+
+/* --- Terminal chrome ----------------------------------------------------- */
+
+.pos-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px clamp(16px, 3vw, 28px);
+  background: linear-gradient(135deg, var(--octo-orange) 0%, var(--octo-orange-deep) 100%);
+  box-shadow: 0 6px 24px rgba(232, 93, 4, 0.18);
+}
+
+.pos-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pos-brand-mark {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  color: #ffffff;
+}
+
+.pos-brand-mark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.pos-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.pos-brand-text strong {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pos-brand-text span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11.5px;
+}
+
+.pos-topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pos-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pos-chip .mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 11.5px;
+}
+
+.pos-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  flex: none;
+}
+
+.pos-dot.online {
+  background: #6bf0ae;
+  box-shadow: 0 0 10px rgba(107, 240, 174, 0.8);
+}
+
+.pos-dot.offline {
+  background: #ffb3ab;
+}
+
+/* --- Layout -------------------------------------------------------------- */
+
+.pos-shell {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 30px) clamp(16px, 3vw, 28px) 60px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1040px) {
+  .pos-shell {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.pos-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (min-width: 1040px) {
+  .pos-col-side {
+    position: sticky;
+    top: 92px;
+  }
+}
+
+.pos-card {
+  background: var(--octo-paper);
+  border: 1px solid var(--octo-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--octo-shadow);
+  padding: 22px;
+}
+
+.pos-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.pos-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--octo-label);
+}
+
+.pos-hint {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--octo-muted);
+}
+
+/* --- Catalog ------------------------------------------------------------- */
+
+.pos-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.pos-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  background: var(--octo-paper);
+  border: 1px solid var(--octo-hairline);
+  border-radius: var(--radius-inner);
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  font-family: inherit;
+}
+
+.pos-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 106, 0, 0.34);
+  box-shadow: var(--octo-shadow);
+}
+
+.pos-item.is-active {
+  border-color: var(--octo-orange);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.14);
+}
+
+.pos-item.is-sold {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pos-item.is-sold:hover {
+  transform: none;
+  border-color: var(--octo-hairline);
+  box-shadow: none;
+}
+
+/* Abstract generated thumbnails - no stock imagery, nothing to attribute */
+.pos-thumb {
+  aspect-ratio: 4 / 3;
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  filter: blur(0.5px);
+}
+
+.pos-item-body {
+  padding: 13px 14px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pos-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--octo-ink);
+  line-height: 1.3;
+}
+
+.pos-item-kind {
+  font-size: 11px;
+  color: var(--octo-label);
+}
+
+.pos-item-price {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--octo-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-sold-tag {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(28, 122, 82, 0.12);
+  color: #1c7a52;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --- Checkout ------------------------------------------------------------ */
+
+.pos-empty {
+  text-align: center;
+  padding: 34px 16px;
+  color: var(--octo-muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.pos-empty svg {
+  width: 34px;
+  height: 34px;
+  color: var(--octo-label);
+  margin-bottom: 12px;
+}
+
+.pos-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--octo-hairline);
+  margin-bottom: 16px;
+}
+
+.pos-summary-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pos-amount {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 8px;
+}
+
+.pos-amount small {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--octo-muted);
+  margin-left: 4px;
+}
+
+.pos-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-inner);
+  background: var(--octo-cream);
+  border: 1px solid var(--octo-hairline);
+}
+
+#posQrCanvas {
+  border-radius: 10px;
+  display: block;
+}
+
+.pos-payload {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--octo-muted);
+  word-break: break-all;
+  text-align: center;
+}
+
+/* --- Payment status ------------------------------------------------------ */
+
+.pos-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-inner);
+  margin-top: 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.pos-status-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.pos-status-icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.pos-status.waiting {
+  background: rgba(255, 106, 0, 0.08);
+  border-color: rgba(255, 106, 0, 0.22);
+  color: var(--octo-orange-deep);
+}
+
+.pos-status.waiting .pos-status-icon {
+  background: rgba(255, 106, 0, 0.16);
+}
+
+.pos-status.paid {
+  background: rgba(28, 122, 82, 0.1);
+  border-color: rgba(28, 122, 82, 0.3);
+  color: #1c7a52;
+}
+
+.pos-status.paid .pos-status-icon {
+  background: rgba(28, 122, 82, 0.18);
+}
+
+.pos-status.idle {
+  background: var(--octo-cream);
+  border-color: var(--octo-hairline);
+  color: var(--octo-muted);
+}
+
+.pos-status.idle .pos-status-icon {
+  background: rgba(72, 35, 0, 0.07);
+}
+
+.pos-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: pos-spin 0.7s linear infinite;
+}
+
+@keyframes pos-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pos-receipt {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-inner);
+  background: var(--octo-cream);
+  border: 1px solid var(--octo-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pos-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 12px;
+}
+
+.pos-receipt-row dt {
+  color: var(--octo-muted);
+  flex: none;
+}
+
+.pos-receipt-row dd {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--octo-ink);
+  text-align: right;
+  word-break: break-all;
+  margin: 0;
+}
+
+.pos-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.pos-actions .btn-primary,
+.pos-actions .btn-secondary {
+  flex: 1 1 140px;
+  margin: 0;
+  width: auto;
+}
+
+/* --- Watcher log --------------------------------------------------------- */
+
+.pos-log {
+  max-height: 230px;
+  overflow-y: auto;
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--octo-hairline);
+  background: var(--octo-cream);
+  padding: 12px 14px;
+}
+
+.pos-log-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--octo-ink);
+  padding: 5px 0 5px 11px;
+  border-left: 2px solid var(--octo-hairline);
+  margin: 2px 0;
+}
+
+.pos-log-line.hit {
+  border-left-color: #1c7a52;
+}
+
+.pos-log-line.warn {
+  border-left-color: #b3261e;
+}
+
+.pos-log::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pos-log::-webkit-scrollbar-thumb {
+  background: rgba(255, 106, 0, 0.26);
+  border-radius: 4px;
+}
+
+/* --- Settings ------------------------------------------------------------ */
+
+.pos-settings {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 620px) {
+  .pos-settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pos-field label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--octo-muted);
+}
+
+.pos-field .input-field {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  padding: 11px 13px;
+}
+
+.pos-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--octo-hairline);
+  background: var(--octo-cream);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pos-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--octo-orange);
+  cursor: pointer;
+}
+
+/* --- Demo disclosure ----------------------------------------------------- */
+
+.pos-notice {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-inner);
+  background: rgba(179, 38, 30, 0.07);
+  border: 1px solid rgba(179, 38, 30, 0.28);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #8f1e18;
+}
+
+.pos-notice svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+}
+
+.pos-notice strong {
+  font-weight: 700;
+}
+
+/* --- Focus --------------------------------------------------------------- */
+
+.pos-item:focus-visible,
+.pos-toggle:focus-visible,
+.pos-chip:focus-visible {
+  outline: 3px solid rgba(255, 106, 0, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-spinner { animation: none; }
+}
