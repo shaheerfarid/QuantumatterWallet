@@ -604,3 +604,105 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .pos-spinner { animation: none; }
 }
+
+/* --- Payment channel switch ---------------------------------------------- */
+
+.pos-channels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pos-channel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 11px 13px;
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--octo-hairline);
+  background: var(--octo-paper);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.pos-channel:hover {
+  border-color: rgba(255, 106, 0, 0.34);
+}
+
+.pos-channel.is-active {
+  border-color: var(--octo-orange);
+  background: rgba(255, 106, 0, 0.06);
+  box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.1);
+}
+
+.pos-channel-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--octo-ink);
+}
+
+.pos-channel.is-active .pos-channel-name {
+  color: var(--octo-orange-deep);
+}
+
+.pos-channel-sub {
+  font-size: 11px;
+  color: var(--octo-label);
+}
+
+/* --- Card reader pane ---------------------------------------------------- */
+
+.pos-card-reader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 18px;
+  border-radius: var(--radius-inner);
+  background: var(--octo-cream);
+  border: 1px dashed rgba(255, 106, 0, 0.32);
+}
+
+.pos-reader-icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #fff1de, #ffd79f);
+  color: var(--octo-orange-deep);
+}
+
+.pos-reader-icon svg {
+  width: 23px;
+  height: 23px;
+  display: block;
+}
+
+.pos-reader-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pos-reader-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--octo-ink);
+}
+
+.pos-reader-text span {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--octo-muted);
+}
+
+.pos-channel:focus-visible {
+  outline: 3px solid rgba(255, 106, 0, 0.45);
+  outline-offset: 2px;
+}

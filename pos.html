@@ -48,11 +48,12 @@
           <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/>
         </svg>
         <div>
-          <strong>Demo build.</strong> This shows the on-chain payment loop only. YedPay is
-          not wired in (no credentials yet) and the HKUST QR method is not applied (no spec
-          yet) &mdash; the QR below uses the plain payload the wallet already understands.
-          <strong>HKDq</strong> is a placeholder: it currently points at the existing USDCq
-          test contract until a real HKD stablecoin contract address is provided.
+          <strong>Demo build.</strong> The on-chain HKDq channel works end to end.
+          The <strong>Visa / YedPay</strong> channel is stubbed - no merchant credentials
+          yet, so it simulates the authorisation. <strong>HKDq</strong> points at the
+          existing USDCq test contract until a real HKD stablecoin contract address is
+          supplied. The code below is a plain QR, <em>not</em> the HKUST visual barcode
+          (US 8,948,445 B2) - that needs a custom encoder and decoder on both sides.
         </div>
       </div>
 
@@ -174,6 +175,7 @@
 
   const state = {
     selected: null,
+    channel: 'chain',        // 'chain' (HKDq on-chain) | 'card' (Visa via YedPay)
     sold: new Set(),
     watching: false,
     timer: null,
@@ -244,11 +246,25 @@
 
   /* ---------------- checkout ---------------- */
 
+  /* Two payment channels, per the confirmed spec:
+       chain - customer sends HKDq on-chain from the Articulator wallet
+       card  - customer pays by Visa through the YedPay terminal
+     Both settle the same sale; only the confirmation source differs. */
+
   function selectItem(item) {
     state.selected = item;
+    state.channel = 'chain';
     renderCatalog();
     renderCheckout('waiting');
     startWatcher();
+  }
+
+  function setChannel(channel) {
+    if (state.channel === channel) return;
+    state.channel = channel;
+    log('Payment channel switched to ' + (channel === 'chain' ? 'on-chain HKDq' : 'Visa / YedPay'));
+    if (channel === 'chain') { renderCheckout('waiting'); startWatcher(); }
+    else { stopWatcher(); renderCheckout('waiting'); }
   }
 
   function paymentPayload(item) {
@@ -260,40 +276,82 @@
     const item = state.selected;
     if (!item) return;
     const payload = paymentPayload(item);
+    const isCard = state.channel === 'card';
+
+    const tabs = status === 'paid' ? '' : `
+      <div class="pos-channels" role="tablist">
+        <button type="button" class="pos-channel ${isCard ? '' : 'is-active'}" data-channel="chain">
+          <span class="pos-channel-name">On-chain</span>
+          <span class="pos-channel-sub">HKDq stablecoin</span>
+        </button>
+        <button type="button" class="pos-channel ${isCard ? 'is-active' : ''}" data-channel="card">
+          <span class="pos-channel-name">Visa</span>
+          <span class="pos-channel-sub">via YedPay terminal</span>
+        </button>
+      </div>`;
+
+    const chainPane = `
+      <div class="pos-qr-wrap">
+        <canvas id="posQrCanvas"></canvas>
+        <div class="pos-payload">${payload}</div>
+      </div>
+      <p class="pos-hint" style="margin-top:10px;">
+        Customer scans this in the Articulator wallet, then signs and sends.
+      </p>`;
+
+    const cardPane = `
+      <div class="pos-card-reader">
+        <div class="pos-reader-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/><path d="M6 14.5h4"/>
+          </svg>
+        </div>
+        <div class="pos-reader-text">
+          <strong>Tap, insert or swipe card</strong>
+          <span>Terminal will authorise HK$ ${fmtHKD(item.price)} through YedPay.</span>
+        </div>
+      </div>
+      <p class="pos-hint" style="margin-top:10px;">
+        Not wired to YedPay - no merchant credentials yet. See
+        <code>yedpayCreatePayment()</code> for where the live call belongs.
+      </p>`;
 
     const statusBlock = status === 'paid'
       ? `<div class="pos-status paid">
            <span class="pos-status-icon">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
            </span>
-           <span>Payment confirmed on-chain</span>
+           <span>${receipt && receipt.channel === 'card' ? 'Card payment authorised' : 'Payment confirmed on-chain'}</span>
          </div>`
       : `<div class="pos-status waiting">
            <span class="pos-status-icon"><span class="pos-spinner"></span></span>
-           <span>Waiting for payment&hellip;</span>
+           <span>${isCard ? 'Waiting for card…' : 'Waiting for payment…'}</span>
          </div>`;
 
-    const receiptBlock = receipt ? `
+    const receiptBlock = receipt ? (receipt.channel === 'card' ? `
       <dl class="pos-receipt">
+        <div class="pos-receipt-row"><dt>Channel</dt><dd>Visa / YedPay</dd></div>
+        <div class="pos-receipt-row"><dt>Authorisation</dt><dd>${receipt.authCode}</dd></div>
+        <div class="pos-receipt-row"><dt>Card</dt><dd>${receipt.pan}</dd></div>
+        <div class="pos-receipt-row"><dt>Charged</dt><dd>HK$ ${fmtHKD(receipt.value)}</dd></div>
+      </dl>` : `
+      <dl class="pos-receipt">
+        <div class="pos-receipt-row"><dt>Channel</dt><dd>On-chain ${cfg.symbol}</dd></div>
         <div class="pos-receipt-row"><dt>Transaction</dt><dd>${receipt.txHash}</dd></div>
         <div class="pos-receipt-row"><dt>Block</dt><dd>${receipt.block}</dd></div>
         <div class="pos-receipt-row"><dt>From</dt><dd>${receipt.from}</dd></div>
         <div class="pos-receipt-row"><dt>Received</dt><dd>${fmtHKD(receipt.value)} ${cfg.symbol}</dd></div>
-      </dl>` : '';
+      </dl>`) : '';
 
     $('checkoutBody').innerHTML = `
       <div class="pos-summary">
         <div class="pos-label">${item.id} &middot; ${item.kind}</div>
         <div class="pos-summary-title">${item.title}</div>
-        <div class="pos-amount">HK$ ${fmtHKD(item.price)}<small>${cfg.symbol}</small></div>
+        <div class="pos-amount">HK$ ${fmtHKD(item.price)}<small>${isCard && status !== 'paid' ? 'HKD' : cfg.symbol}</small></div>
       </div>
 
-      ${status === 'paid' ? '' : `
-      <div class="pos-qr-wrap">
-        <canvas id="posQrCanvas"></canvas>
-        <div class="pos-payload">${payload}</div>
-      </div>`}
-
+      ${tabs}
+      ${status === 'paid' ? '' : (isCard ? cardPane : chainPane)}
       ${statusBlock}
       ${receiptBlock}
 
@@ -301,21 +359,45 @@
         ${status === 'paid'
           ? '<button class="btn-primary" id="newSaleBtn">New sale</button>'
           : `<button class="btn-secondary" id="cancelSaleBtn">Cancel</button>
-             ${cfg.simulate ? '<button class="btn-primary" id="simulatePayBtn">Simulate payment</button>' : ''}`}
+             ${cfg.simulate ? `<button class="btn-primary" id="simulatePayBtn">Simulate ${isCard ? 'card' : 'payment'}</button>` : ''}`}
       </div>`;
 
-    if (status !== 'paid') {
-      QRCode.toCanvas($('posQrCanvas'), payload, {
-        width: 190, margin: 2,
-        color: { dark: '#1f1f24', light: '#ffffff' }
-      }, err => { if (err) console.error('QR render failed', err); });
+    document.querySelectorAll('.pos-channel').forEach(btn => {
+      btn.addEventListener('click', () => setChannel(btn.dataset.channel));
+    });
 
+    if (status !== 'paid') {
+      if (!isCard) {
+        QRCode.toCanvas($('posQrCanvas'), payload, {
+          width: 190, margin: 2,
+          color: { dark: '#1f1f24', light: '#ffffff' }
+        }, err => { if (err) console.error('QR render failed', err); });
+      }
       $('cancelSaleBtn').addEventListener('click', cancelSale);
       const sim = $('simulatePayBtn');
-      if (sim) sim.addEventListener('click', simulatePayment);
+      if (sim) sim.addEventListener('click', isCard ? simulateCardPayment : simulatePayment);
     } else {
       $('newSaleBtn').addEventListener('click', cancelSale);
     }
+  }
+
+  /* Where the live YedPay call belongs. Needs merchant credentials and the
+     current API docs before it can be written for real. */
+  async function yedpayCreatePayment(/* amountHKD, reference */) {
+    throw new Error('YedPay not configured - no merchant credentials yet');
+  }
+
+  function simulateCardPayment() {
+    if (!state.selected) return;
+    const auth = Array.from({ length: 6 }, () => '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random() * 34 | 0]).join('');
+    log(`Card authorised via YedPay, auth ${auth}`, 'hit');
+    state.sold.add(state.selected.id);
+    stopWatcher();
+    renderCatalog();
+    renderCheckout('paid', {
+      channel: 'card', authCode: auth,
+      pan: 'VISA •••• 4242', value: state.selected.price
+    });
   }
 
   function cancelSale() {
