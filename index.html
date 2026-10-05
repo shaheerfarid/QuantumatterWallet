@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
+  <script src="addrQrOverlay.js"></script>
 </head>
 <body>
   <div class="app-wrapper">
@@ -369,7 +370,7 @@
   <div class="modal" id="qrModal">
     <div class="modal-content">
       <h3>Receive <span id="qrCryptoName">USDCq</span></h3>
-      <canvas id="qrCanvas" style="margin: 20px auto; display: block; border-radius: 10px;"></canvas>
+      <canvas id="qrCanvas" style="margin: 20px auto; display: block; border-radius: 10px; max-width: 100%; height: auto;"></canvas>
       <div style="text-align: center; font-size: 12px; word-break: break-all; margin: 10px 0;" id="qrAddress"></div>
       <button class="btn-primary" onclick="closeQrModal()">Close</button>
     </div>
@@ -899,18 +900,24 @@
                     logTransaction('Scanned JSON does not contain "address" or "amount" keys.');
                   }
                 } catch (error) {
-                  // If not JSON, treat it as plain text
+                  // If not JSON, treat it as plain text. Codes produced by the
+                  // address overlay carry an `ethereum:` URI prefix, which must be
+                  // stripped before it reaches the recipient field - otherwise the
+                  // prefix ends up in the address and signing fails.
+                  const plainAddress =
+                    (window.AddrQR && AddrQR.normalizeAddress(scannedData)) || scannedData;
+
                   previewDiv.innerHTML = `
                     <span style="color:#48bb78; font-size: 14px;">Scanned Address:</span> 
                     <br>
                     <strong style="font-size: 12px; word-wrap: break-word; word-break: break-all; display: inline-block; max-width: 100%;">
-                      ${scannedData}
+                      ${plainAddress}
                     </strong>
                   `;
                   saveBtn.style.display = 'inline-block';
-                  saveBtn.dataset.address = scannedData;
+                  saveBtn.dataset.address = plainAddress;
 
-                  logTransaction(`Scanned non-JSON data: ${scannedData}`);
+                  logTransaction(`Scanned non-JSON data: ${plainAddress}`);
                 }
 
                 // Stop the camera stream
@@ -1958,22 +1965,45 @@
       document.getElementById('setupModal').style.display = 'none';
     }
 
+    // Background sitting behind the address QR. Any square-ish image works;
+    // the overlay centre-crops it.
+    const QR_OVERLAY_IMAGE = './images/LogoQuantumatterWallet.png';
+
     function openQrModal(address, cryptoName) {
       if (!address || address === 'Not loaded') {
         alert('Invalid address provided');
         return;
       }
-      
+
       document.getElementById('qrModal').style.display = 'flex';
       document.getElementById('qrCryptoName').textContent = cryptoName;
       document.getElementById('qrAddress').textContent = address;
-      
-      // Clear previous QR code
+
       const canvas = document.getElementById('qrCanvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Generate QR code
+
+      // Prof. Mow's overlay (addrQrOverlay.js). It only handles EVM addresses,
+      // so anything else falls back to the plain QR this modal used before.
+      if (window.AddrQR && AddrQR.normalizeAddress(address)) {
+        AddrQR.loadImage(QR_OVERLAY_IMAGE).then(function (background) {
+          try {
+            AddrQR.render(canvas, { address: address, background: background });
+            logTransaction('Receive QR rendered with address overlay');
+          } catch (err) {
+            console.error('Overlay QR failed, falling back to plain QR:', err);
+            drawPlainQr(canvas, ctx, address);
+          }
+        });
+        return;
+      }
+
+      drawPlainQr(canvas, ctx, address);
+    }
+
+    // Original behaviour, kept for non-EVM addresses (Bitcoin, Solana) and as a
+    // fallback if the overlay cannot be produced.
+    function drawPlainQr(canvas, ctx, address) {
       QRCode.toCanvas(canvas, address, {
         width: 200,
         margin: 2,
@@ -1984,11 +2014,10 @@
       }, function (error) {
         if (error) {
           console.error('QR code generation error:', error);
-          // Show error message in canvas
           ctx.fillStyle = '#e53e3e';
           ctx.font = '14px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText('QR Generation Failed', canvas.width/2, canvas.height/2);
+          ctx.fillText('QR Generation Failed', canvas.width / 2, canvas.height / 2);
         }
       });
     }
