@@ -327,3 +327,80 @@ body {
   border-radius: 10px;
   display: block;
 }
+
+/* --- artwork / code comparison ------------------------------------------- */
+
+.rs-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-inner);
+  background: var(--octo-cream);
+  border: 1px solid var(--octo-hairline);
+}
+
+.rs-compare-item { margin: 0; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+
+.rs-compare-item figcaption {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--octo-label);
+  text-align: center;
+}
+
+.rs-compare-art {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  border: 1px solid var(--octo-hairline);
+}
+
+.rs-compare-item.is-code canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--octo-hairline);
+}
+
+.rs-compare-arrow { color: var(--octo-label); display: grid; place-items: center; }
+.rs-compare-arrow svg { width: 20px; height: 20px; display: block; }
+
+/* --- live scannability readout ------------------------------------------- */
+
+.rs-scanstate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px 13px;
+  border-radius: var(--radius-inner);
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.rs-scanstate.ok {
+  background: rgba(28, 122, 82, 0.1);
+  border-color: rgba(28, 122, 82, 0.28);
+  color: #1c7a52;
+}
+
+.rs-scanstate.bad {
+  background: rgba(179, 38, 30, 0.08);
+  border-color: rgba(179, 38, 30, 0.3);
+  color: #b3261e;
+}
+
+.rs-scanstate svg { width: 15px; height: 15px; flex: none; }
+.rs-scanstate .rs-x { font-size: 14px; line-height: 1; flex: none; }
+
+/* thumbnails carry a painted scene now, so give them a little depth */
+.rs-thumb { background-size: cover; background-position: center; }
+
+.rs-payload { margin-top: 10px; }
+.rs-scanstate + .rs-hint { margin-top: 12px; }

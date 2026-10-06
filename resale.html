@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="QuantumatterWallet.css">
   <link rel="stylesheet" href="resale.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
+  <script src="scenery.js"></script>
   <script src="addrQrOverlay.js"></script>
 </head>
 <body>
@@ -127,39 +129,29 @@
     bob:   '0x8a03Cd8Fdb225Fe1A74e94C3b6d193F3ABAE52D5'
   };
 
-  /* Gradients are held as data so the CSS swatch and the canvas used behind the
-     QR come from one definition instead of being written out twice. */
+  /* Each piece is a procedurally painted scene (scenery.js). The same canvas
+     is used for the gallery thumbnail and as the background behind the address
+     QR, so what the seller sees is literally what ends up inside the code. */
+  // Declared before PIECES: the map() below calls sceneBackground() during
+  // initialisation, and a `const` declared after it would still be in its
+  // temporal dead zone at that point.
+  const urlCache = {};
+
+  /* CSS background shorthand for a scene, so existing `style="background:..."`
+     markup keeps working unchanged. */
+  function sceneBackground(name) {
+    if (!urlCache[name]) {
+      urlCache[name] = 'url(' + Scenery.scene(name, 420).toDataURL('image/png') + ') center/cover';
+    }
+    return urlCache[name];
+  }
+
   const PIECES = [
-    { id: 'ART-041', title: 'Tidal Drift No. 4', grad: { deg: 140, stops: [['#123b5e',0],['#2f7fa8',.45],['#f2c078',1]] } },
-    { id: 'ART-067', title: 'Kowloon Static',    grad: { deg: 35,  stops: [['#0f2027',0],['#3c6e71',.40],['#d9d9d9',1]] } },
-    { id: 'ART-088', title: 'Monsoon Field',     grad: { deg: 120, stops: [['#1b3a2f',0],['#4f8f6b',.45],['#c7dfa0',1]] } },
-    { id: 'ART-095', title: 'Neon Ferry',        grad: { deg: 220, stops: [['#131a3a',0],['#5b3fa8',.50],['#ff7bb0',1]] } }
-  ].map(p => Object.assign(p, { art: cssGradient(p.grad) }));
-
-  function cssGradient(g) {
-    return 'linear-gradient(' + g.deg + 'deg,' +
-      g.stops.map(st => st[0] + ' ' + Math.round(st[1] * 100) + '%').join(',') + ')';
-  }
-
-  /* Same gradient painted to a canvas, for use as the QR overlay background.
-     CSS measures the angle from "to top" clockwise, hence the sin/-cos vector. */
-  function gradientCanvas(g, size) {
-    const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const ctx = c.getContext('2d');
-    const rad = g.deg * Math.PI / 180;
-    const dx = Math.sin(rad), dy = -Math.cos(rad);
-    const len = Math.abs(size * dx) + Math.abs(size * dy);
-    const half = size / 2;
-    const lg = ctx.createLinearGradient(
-      half - dx * len / 2, half - dy * len / 2,
-      half + dx * len / 2, half + dy * len / 2
-    );
-    g.stops.forEach(st => lg.addColorStop(st[1], st[0]));
-    ctx.fillStyle = lg;
-    ctx.fillRect(0, 0, size, size);
-    return c;
-  }
+    { id: 'ART-041', title: 'Tidal Drift No. 4', scene: 'tidalDrift'    },
+    { id: 'ART-067', title: 'Kowloon Static',    scene: 'kowloonStatic' },
+    { id: 'ART-088', title: 'Monsoon Field',     scene: 'monsoonField'  },
+    { id: 'ART-095', title: 'Neon Ferry',        scene: 'neonFerry'     }
+  ].map(p => Object.assign(p, { art: sceneBackground(p.scene) }));
 
   const state = {
     owner: {},            // pieceId -> 'alice' | 'bob'
@@ -252,18 +244,36 @@
 
     el.innerHTML = `
       <div class="rs-label" style="margin-bottom:10px;">Listed &mdash; show this to the buyer</div>
-      <div class="rs-qr-wrap">
-        <canvas id="rsQrCanvas"></canvas>
-        <div class="rs-payload">${state.qrPayload}</div>
+
+      <div class="rs-compare">
+        <figure class="rs-compare-item">
+          <div class="rs-compare-art" style="background:${state.selected.art}"></div>
+          <figcaption>Artwork</figcaption>
+        </figure>
+        <div class="rs-compare-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12h15"/><path d="m13.5 6.5 6 5.5-6 5.5"/>
+          </svg>
+        </div>
+        <figure class="rs-compare-item is-code">
+          <canvas id="rsQrCanvas"></canvas>
+          <figcaption>Payment code</figcaption>
+        </figure>
       </div>
+
+      <div class="rs-payload">${state.qrPayload}</div>
+
       <div class="rs-slider-row">
         <label for="lightInput">Background lightening</label>
         <output id="lightValue">${state.lightening}%</output>
         <input type="range" id="lightInput" min="0" max="100" step="1" value="${state.lightening}">
       </div>
+
+      <div class="rs-scanstate" id="scanState"></div>
+
       <p class="rs-hint">
-        The artwork sits behind the code. Lighten the background until it scans
-        reliably &mdash; dark or busy images need more.
+        The artwork is inside the code. Drag the slider down and watch a dark or
+        busy scene stop scanning &mdash; that is what the control is for.
       </p>
       <p class="rs-hint" style="margin-top:8px;">
         HK$ ${fmt(state.price)} for ${state.selected.title} (${state.selected.id}).
@@ -287,15 +297,34 @@
     try {
       AddrQR.render(canvas, {
         address: state.qrPayload,
-        background: gradientCanvas(state.selected.grad, 600),
+        background: Scenery.scene(state.selected.scene, 600),
         lightening: state.lightening
       });
+      reportScannability(canvas);
     } catch (err) {
       console.error('Overlay QR failed, falling back to a plain code:', err);
       QRCode.toCanvas(canvas, state.qrPayload, {
         width: 180, margin: 2, color: { dark: '#1f1f24', light: '#ffffff' }
       }, e => { if (e) console.error(e); });
     }
+  }
+
+  /* Decode the code we just drew and say whether it actually reads. The same
+     check a seller would otherwise have to do by eye with their phone. */
+  function reportScannability(canvas) {
+    const el = $('scanState');
+    if (!el || typeof jsQR !== 'function') return;
+    let ok = false;
+    try {
+      const d = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      const res = jsQR(d.data, canvas.width, canvas.height);
+      ok = !!res && res.data === state.qrPayload;
+    } catch (e) { ok = false; }
+
+    el.className = 'rs-scanstate ' + (ok ? 'ok' : 'bad');
+    el.innerHTML = ok
+      ? CHECK + '<span>Scans correctly at this setting</span>'
+      : '<span class="rs-x">\u2715</span><span>Will not scan &mdash; lighten the background</span>';
   }
 
   /* ---------------- buyer ---------------- */
