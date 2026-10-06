@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="QuantumatterWallet.css?v=5">
-  <link rel="stylesheet" href="resale.css?v=5">
+  <link rel="stylesheet" href="QuantumatterWallet.css?v=6">
+  <link rel="stylesheet" href="resale.css?v=6">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
-  <script src="scenery.js?v=5"></script>
-  <script src="addrQrOverlay.js?v=5"></script>
+  <script src="artworks.js?v=6"></script>
+  <script src="addrQrOverlay.js?v=6"></script>
 </head>
 <body>
 
@@ -140,32 +140,15 @@
     bob:   '0x8a03Cd8Fdb225Fe1A74e94C3b6d193F3ABAE52D5'
   };
 
-  /* Each piece is a procedurally painted scene (scenery.js). The same canvas
-     is used for the gallery thumbnail and as the background behind the address
-     QR, so what the seller sees is literally what ends up inside the code. */
-  // Declared before PIECES: the map() below calls sceneBackground() during
-  // initialisation, and a `const` declared after it would still be in its
-  // temporal dead zone at that point.
-  const urlCache = {};
-
-  /* CSS background shorthand for a scene, so existing `style="background:..."`
-     markup keeps working unchanged. */
-  function sceneBackground(name) {
-    if (!urlCache[name]) {
-      urlCache[name] = 'url(' + Scenery.scene(name, 420).toDataURL('image/png') + ') center/cover';
-    }
-    return urlCache[name];
-  }
-
-  /* Public-domain masterworks in a pop screenprint treatment. Titled "after X"
-     because that is what they are - the originals are out of copyright, the
-     recolouring is ours. */
+  /* Public-domain paintings (artworks.js, files in images/art/). The same image
+     is the gallery thumbnail and the background behind the address QR, so what
+     the seller sees is literally what ends up inside the code. */
   const PIECES = [
-    { id: 'ART-041', title: 'The Scream, after Munch',   scene: 'screamAfterMunch'       },
-    { id: 'ART-067', title: 'Great Wave, after Hokusai', scene: 'waveAfterHokusai'       },
-    { id: 'ART-088', title: 'Starry Night, after Van Gogh', scene: 'starryAfterVanGogh'  },
-    { id: 'ART-095', title: 'Sunflowers, after Van Gogh',   scene: 'sunflowersAfterVanGogh' }
-  ].map(p => Object.assign(p, { art: sceneBackground(p.scene) }));
+    { id: 'ART-041', title: 'The Scream',       artist: 'Edvard Munch, 1893',      key: 'scream'      },
+    { id: 'ART-067', title: 'The Great Wave',   artist: 'Hokusai, c.1831',         key: 'greatWave'   },
+    { id: 'ART-088', title: 'The Starry Night', artist: 'Vincent van Gogh, 1889',  key: 'starryNight' },
+    { id: 'ART-095', title: 'Sunflowers',       artist: 'Vincent van Gogh, 1888',  key: 'sunflowers'  }
+  ].map(p => Object.assign(p, { art: Artworks.background(p.key) }));
 
   const state = {
     owner: {},            // pieceId -> 'alice' | 'bob'
@@ -207,6 +190,7 @@
         <div class="rs-thumb" style="background:${p.art}"></div>
         <div class="rs-piece-body">
           <div class="rs-piece-title">${p.title}</div>
+          <div class="rs-piece-artist">${p.artist}</div>
           <div class="rs-piece-id">${p.id}</div>
         </div>`;
       b.addEventListener('click', () => selectPiece(p));
@@ -320,7 +304,7 @@
     try {
       AddrQR.render(canvas, {
         address: state.qrPayload,
-        background: Scenery.scene(state.selected.scene, 600),
+        background: Artworks.image(state.selected.key),
         lightening: state.lightening
       });
       reportScannability(canvas);
@@ -552,6 +536,12 @@
     $('buyerAddr').textContent = shorten(ADDR.bob);
     $('rsReset').addEventListener('click', reset);
     reset();
+    // Paintings decode asynchronously; redraw once they are in so the first
+    // code a seller sees already carries the artwork.
+    Artworks.preload().then(function () {
+      renderCollection();
+      if (state.selected) renderSellerListing();
+    });
   });
 </script>
 

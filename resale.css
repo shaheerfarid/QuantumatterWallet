@@ -519,3 +519,10 @@ details.rs-notice > summary:focus-visible { outline: 3px solid rgba(179,38,30,.4
 @media (min-width: 980px) {
   .rs-collection { grid-template-columns: repeat(auto-fill, 142px); }
 }
+
+/* artist line under each gallery title */
+.rs-piece-artist {
+  font-size: 10.5px;
+  color: var(--octo-muted);
+  line-height: 1.35;
+}
