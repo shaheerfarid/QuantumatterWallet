@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="QuantumatterWallet.css?v=6">
-  <link rel="stylesheet" href="resale.css?v=6">
+  <link rel="stylesheet" href="QuantumatterWallet.css?v=8">
+  <link rel="stylesheet" href="resale.css?v=8">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
-  <script src="artworks.js?v=6"></script>
-  <script src="addrQrOverlay.js?v=6"></script>
+  <script src="artworks.js?v=8"></script>
+  <script src="addrQrOverlay.js?v=8"></script>
 </head>
 <body>
 
@@ -539,6 +539,17 @@
     // Paintings decode asynchronously; redraw once they are in so the first
     // code a seller sees already carries the artwork.
     Artworks.preload().then(function () {
+      // url() may now point at a local override, so rebuild the thumbnail
+      // backgrounds - and take any caption the local folder supplied, so an
+      // overridden demo is not labelled with the bundled paintings' titles
+      PIECES.forEach(function (p) {
+        p.art = Artworks.background(p.key);
+        var lbl = Artworks.label(p.key);
+        if (lbl) {
+          if (lbl.title)  p.title  = lbl.title;
+          if (lbl.artist) p.artist = lbl.artist;
+        }
+      });
       renderCollection();
       if (state.selected) renderSellerListing();
     });
