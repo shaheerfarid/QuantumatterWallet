@@ -33,40 +33,51 @@
 
   <main class="rs-shell">
 
-    <div class="rs-notice">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/>
-      </svg>
-      <div>
-        <strong>Both sides shown on one screen so the handoff is visible.</strong> In the real
-        app these are two phones: the seller half lives in the wallet's My&nbsp;Collection, the
-        buyer half is the wallet's existing camera scanner. <strong>Ownership transfer is not
-        the wallet's job</strong> &mdash; the wallet requests it and the art&nbsp;ID&nbsp;registry
-        performs it, so that step is shown as a call out to the registry, not something this
-        code does. The Visa&nbsp;/&nbsp;YedPay leg is simulated (no merchant credentials yet).
+    <details class="rs-notice">
+      <summary>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/>
+        </svg>
+        <span>Both sides are shown on one screen so the handoff is visible &mdash; what this demo does and does not do</span>
+      </summary>
+      <div class="rs-notice-body">
+        In the real app these are two phones: the seller half lives in the wallet's
+        My&nbsp;Collection, the buyer half is the wallet's existing camera scanner.
+        <strong>Ownership transfer is not the wallet's job</strong> &mdash; the wallet requests
+        it and the art&nbsp;ID&nbsp;registry performs it, so that step is shown as a call out to
+        the registry, not something this code does. The Visa&nbsp;/&nbsp;YedPay leg is simulated
+        (no merchant credentials yet).
       </div>
-    </div>
+    </details>
 
     <div class="rs-panes">
 
-      <!-- ================= SELLER ================= -->
+      <!-- ===== Alice's inventory: full width, so the code below sits level
+                 with the buyer instead of being pushed off the screen ===== -->
+      <section class="rs-pane rs-pane-wide">
+        <div class="rs-pane-body">
+          <div class="rs-collection-head">
+            <div>
+              <div class="rs-label">Alice's collection</div>
+              <p class="rs-hint">Pick a piece to put up for sale.</p>
+            </div>
+            <span class="rs-addr-chip" id="sellerAddr">&mdash;</span>
+          </div>
+          <div class="rs-collection" id="collection"></div>
+        </div>
+      </section>
+
+      <!-- ================= SELLER: the code ================= -->
       <section class="rs-pane">
         <div class="rs-pane-head">
           <div class="rs-avatar">A</div>
           <div class="rs-who">
-            <strong>Alice</strong>
-            <span id="sellerAddr">&mdash;</span>
+            <strong>Alice's screen</strong>
+            <span>what she shows the buyer</span>
           </div>
           <span class="rs-role">Seller</span>
         </div>
-        <div class="rs-pane-body">
-          <div>
-            <div class="rs-label">My Collection</div>
-            <p class="rs-hint" style="margin:6px 0 12px;">Pick a piece Alice owns to put up for sale.</p>
-            <div class="rs-collection" id="collection"></div>
-          </div>
-          <div id="sellerListing"></div>
-        </div>
+        <div class="rs-pane-body" id="sellerListing"></div>
       </section>
 
       <!-- ================= BUYER ================= -->
@@ -213,7 +224,16 @@
 
   function renderSellerListing() {
     const el = $('sellerListing');
-    if (!state.selected) { el.innerHTML = ''; return; }
+    if (!state.selected) {
+      el.innerHTML = `
+        <div class="rs-scan-target">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="9" cy="8.5" r="1.5"/>
+          </svg>
+          <div class="rs-hint">Pick a piece above to list it for sale.</div>
+        </div>`;
+      return;
+    }
 
     if (!state.listing) {
       el.innerHTML = `

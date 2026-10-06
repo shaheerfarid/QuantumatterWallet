@@ -404,3 +404,118 @@ body {
 
 .rs-payload { margin-top: 10px; }
 .rs-scanstate + .rs-hint { margin-top: 12px; }
+
+/* ==========================================================================
+   Desktop layout corrections
+
+   At laptop widths the seller pane ran ~1275px tall against the buyer's ~331px,
+   which pushed the payment code below the fold and left most of the right-hand
+   column empty. Three changes: the collection fits on one row, the seller
+   column is given the extra width it actually needs, and the buyer pane sticks
+   so it stays beside whatever the seller is doing.
+   ========================================================================== */
+
+@media (min-width: 980px) {
+  /* the seller side carries more content, so give it more room */
+  .rs-panes { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+
+  /* one row of four, instead of three-plus-an-orphan */
+  .rs-collection { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .rs-piece-body { padding: 9px 10px 11px; }
+  .rs-piece-title { font-size: 12.5px; }
+  .rs-piece-id { font-size: 10px; }
+
+  /* follows the seller down the page instead of stranding dead space */
+  .rs-panes > .rs-pane:last-child {
+    position: sticky;
+    top: 18px;
+  }
+
+  /* the notice was three dense lines of red; calm it down */
+  .rs-notice { font-size: 12px; padding: 12px 15px; align-items: flex-start; }
+  .rs-notice svg { width: 15px; height: 15px; }
+}
+
+/* Wider still: the code can afford to be larger next to the artwork */
+@media (min-width: 1280px) {
+  .rs-compare { grid-template-columns: minmax(0, 0.5fr) auto minmax(0, 1fr); padding: 18px; }
+}
+
+/* Alice's inventory spans both columns; the code pane and the buyer then sit
+   level with each other, which is the comparison worth seeing. */
+@media (min-width: 980px) {
+  .rs-pane-wide { grid-column: 1 / -1; }
+
+  /* with the collection lifted out, the two remaining panes are even */
+  .rs-panes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* the collection is wide now, so show all four comfortably */
+  .rs-collection { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* sticky no longer helps once the panes are level - it just detaches them */
+  .rs-panes > .rs-pane:last-child { position: static; }
+}
+
+/* The collection spans the full width now, so 1fr columns blew the square
+   thumbnails up to ~330px each. Fixed-width tiles instead, left aligned. */
+@media (min-width: 980px) {
+  .rs-collection {
+    grid-template-columns: repeat(auto-fill, 156px);
+    justify-content: start;
+    gap: 12px;
+  }
+}
+
+/* --- collapsed notice ----------------------------------------------------- */
+
+details.rs-notice { display: block; padding: 0; }
+
+details.rs-notice > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 15px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+details.rs-notice > summary::-webkit-details-marker { display: none; }
+details.rs-notice > summary::after {
+  content: "";
+  margin-left: auto;
+  width: 7px; height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  flex: none;
+}
+details.rs-notice[open] > summary::after { transform: rotate(-135deg); }
+details.rs-notice > summary:focus-visible { outline: 3px solid rgba(179,38,30,.4); outline-offset: -3px; }
+.rs-notice-body { padding: 0 15px 13px 40px; font-weight: 400; }
+
+/* --- slimmer collection header ------------------------------------------- */
+
+.rs-collection-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.rs-collection-head .rs-hint { margin-top: 4px; }
+
+.rs-addr-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--octo-label);
+  background: var(--octo-cream);
+  border: 1px solid var(--octo-hairline);
+  border-radius: 999px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+@media (min-width: 980px) {
+  .rs-collection { grid-template-columns: repeat(auto-fill, 142px); }
+}
