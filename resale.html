@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="QuantumatterWallet.css?v=3">
-  <link rel="stylesheet" href="resale.css?v=3">
+  <link rel="stylesheet" href="QuantumatterWallet.css?v=4">
+  <link rel="stylesheet" href="resale.css?v=4">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
-  <script src="scenery.js?v=3"></script>
-  <script src="addrQrOverlay.js?v=3"></script>
+  <script src="scenery.js?v=4"></script>
+  <script src="addrQrOverlay.js?v=4"></script>
 </head>
 <body>
 
@@ -158,10 +158,10 @@
   }
 
   const PIECES = [
-    { id: 'ART-041', title: 'Tidal Drift No. 4', scene: 'tidalDrift'    },
-    { id: 'ART-067', title: 'Kowloon Static',    scene: 'kowloonStatic' },
-    { id: 'ART-088', title: 'Monsoon Field',     scene: 'monsoonField'  },
-    { id: 'ART-095', title: 'Neon Ferry',        scene: 'neonFerry'     }
+    { id: 'ART-041', title: 'Bloom, Four Ways',  scene: 'popBloom'    },
+    { id: 'ART-067', title: 'Sitter, Repeated',  scene: 'popPortrait' },
+    { id: 'ART-088', title: 'Sixteen Bottles',   scene: 'popBottles'  },
+    { id: 'ART-095', title: 'Benday Burst',      scene: 'popBurst'    }
   ].map(p => Object.assign(p, { art: sceneBackground(p.scene) }));
 
   const state = {
@@ -292,8 +292,8 @@
       <div class="rs-scanstate" id="scanState"></div>
 
       <p class="rs-hint">
-        The artwork is inside the code. Drag the slider down and watch a dark or
-        busy scene stop scanning &mdash; that is what the control is for.
+        The artwork is inside the code. Drag the slider down and watch a saturated
+        piece stop scanning &mdash; that is what the control is for.
       </p>
       <p class="rs-hint" style="margin-top:8px;">
         HK$ ${fmt(state.price)} for ${state.selected.title} (${state.selected.id}).
