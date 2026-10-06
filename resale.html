@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="QuantumatterWallet.css">
   <link rel="stylesheet" href="resale.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="addrQrOverlay.js"></script>
 </head>
 <body>
 
@@ -126,12 +127,39 @@
     bob:   '0x8a03Cd8Fdb225Fe1A74e94C3b6d193F3ABAE52D5'
   };
 
+  /* Gradients are held as data so the CSS swatch and the canvas used behind the
+     QR come from one definition instead of being written out twice. */
   const PIECES = [
-    { id: 'ART-041', title: 'Tidal Drift No. 4',   art: 'linear-gradient(140deg,#123b5e,#2f7fa8 45%,#f2c078)' },
-    { id: 'ART-067', title: 'Kowloon Static',      art: 'linear-gradient(35deg,#0f2027,#3c6e71 40%,#d9d9d9)'  },
-    { id: 'ART-088', title: 'Monsoon Field',       art: 'linear-gradient(120deg,#1b3a2f,#4f8f6b 45%,#c7dfa0)' },
-    { id: 'ART-095', title: 'Neon Ferry',          art: 'linear-gradient(220deg,#131a3a,#5b3fa8 50%,#ff7bb0)' }
-  ];
+    { id: 'ART-041', title: 'Tidal Drift No. 4', grad: { deg: 140, stops: [['#123b5e',0],['#2f7fa8',.45],['#f2c078',1]] } },
+    { id: 'ART-067', title: 'Kowloon Static',    grad: { deg: 35,  stops: [['#0f2027',0],['#3c6e71',.40],['#d9d9d9',1]] } },
+    { id: 'ART-088', title: 'Monsoon Field',     grad: { deg: 120, stops: [['#1b3a2f',0],['#4f8f6b',.45],['#c7dfa0',1]] } },
+    { id: 'ART-095', title: 'Neon Ferry',        grad: { deg: 220, stops: [['#131a3a',0],['#5b3fa8',.50],['#ff7bb0',1]] } }
+  ].map(p => Object.assign(p, { art: cssGradient(p.grad) }));
+
+  function cssGradient(g) {
+    return 'linear-gradient(' + g.deg + 'deg,' +
+      g.stops.map(st => st[0] + ' ' + Math.round(st[1] * 100) + '%').join(',') + ')';
+  }
+
+  /* Same gradient painted to a canvas, for use as the QR overlay background.
+     CSS measures the angle from "to top" clockwise, hence the sin/-cos vector. */
+  function gradientCanvas(g, size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const rad = g.deg * Math.PI / 180;
+    const dx = Math.sin(rad), dy = -Math.cos(rad);
+    const len = Math.abs(size * dx) + Math.abs(size * dy);
+    const half = size / 2;
+    const lg = ctx.createLinearGradient(
+      half - dx * len / 2, half - dy * len / 2,
+      half + dx * len / 2, half + dy * len / 2
+    );
+    g.stops.forEach(st => lg.addColorStop(st[1], st[0]));
+    ctx.fillStyle = lg;
+    ctx.fillRect(0, 0, size, size);
+    return c;
+  }
 
   const state = {
     owner: {},            // pieceId -> 'alice' | 'bob'
@@ -141,6 +169,8 @@
     scanned: null,
     channel: 'chain',
     stage: 'idle',        // idle | scanned | paid | transferred
+    lightening: 70,       // addrQR background lightening, 0-100
+    qrPayload: null,      // what the code actually encodes (address only)
     ledger: []
   };
 
@@ -181,6 +211,7 @@
   function selectPiece(p) {
     state.selected = p;
     state.listing = null;
+    state.qrPayload = null;
     state.scanned = null;
     state.stage = 'idle';
     renderCollection();
@@ -206,28 +237,65 @@
         const v = Number($('priceInput').value);
         if (!v || v <= 0) return;
         state.price = v;
-        // Degrades gracefully: the wallet's existing scanner reads address +
-        // amount and ignores the extra `art` key.
+        // The listing record. Note the QR does NOT carry this - see below.
         state.listing = { address: ADDR.alice, amount: String(v), art: state.selected.id };
+        // The code itself holds only the seller's address. A version-6 / ECC-H
+        // symbol tops out around 58 bytes and this record is 88, so it could not
+        // ride along even if we wanted it to. The buyer resolves the rest from
+        // the address, which is also what the wallet spec asks for.
+        state.qrPayload = 'ethereum:' + ADDR.alice;
         renderSellerListing();
         renderBuyer();
       });
       return;
     }
 
-    const payload = JSON.stringify(state.listing);
     el.innerHTML = `
       <div class="rs-label" style="margin-bottom:10px;">Listed &mdash; show this to the buyer</div>
       <div class="rs-qr-wrap">
         <canvas id="rsQrCanvas"></canvas>
-        <div class="rs-payload">${payload}</div>
+        <div class="rs-payload">${state.qrPayload}</div>
       </div>
-      <p class="rs-hint" style="margin-top:10px;">
+      <div class="rs-slider-row">
+        <label for="lightInput">Background lightening</label>
+        <output id="lightValue">${state.lightening}%</output>
+        <input type="range" id="lightInput" min="0" max="100" step="1" value="${state.lightening}">
+      </div>
+      <p class="rs-hint">
+        The artwork sits behind the code. Lighten the background until it scans
+        reliably &mdash; dark or busy images need more.
+      </p>
+      <p class="rs-hint" style="margin-top:8px;">
         HK$ ${fmt(state.price)} for ${state.selected.title} (${state.selected.id}).
+        The code carries only Alice's address; the price and piece are looked up from it.
       </p>`;
-    QRCode.toCanvas($('rsQrCanvas'), payload, {
-      width: 180, margin: 2, color: { dark: '#1f1f24', light: '#ffffff' }
-    }, e => { if (e) console.error(e); });
+
+    drawSellerQr();
+
+    // Redraw just the canvas while dragging - re-rendering the whole panel would
+    // tear the slider out from under the pointer mid-drag.
+    $('lightInput').addEventListener('input', (e) => {
+      state.lightening = Number(e.target.value);
+      $('lightValue').value = state.lightening + '%';
+      drawSellerQr();
+    });
+  }
+
+  function drawSellerQr() {
+    const canvas = $('rsQrCanvas');
+    if (!canvas || !state.selected) return;
+    try {
+      AddrQR.render(canvas, {
+        address: state.qrPayload,
+        background: gradientCanvas(state.selected.grad, 600),
+        lightening: state.lightening
+      });
+    } catch (err) {
+      console.error('Overlay QR failed, falling back to a plain code:', err);
+      QRCode.toCanvas(canvas, state.qrPayload, {
+        width: 180, margin: 2, color: { dark: '#1f1f24', light: '#ffffff' }
+      }, e => { if (e) console.error(e); });
+    }
   }
 
   /* ---------------- buyer ---------------- */
@@ -293,7 +361,16 @@
           (<code>startCameraScan</code> in index.html).
         </p>`;
       $('scanBtn').addEventListener('click', () => {
-        state.scanned = JSON.parse(JSON.stringify(state.listing));
+        // All the camera gets is the address. The piece and the price are then
+        // resolved from it - standing in for a lookup against the registry or
+        // backend, which is where the listing really lives.
+        const addr = AddrQR.normalizeAddress(state.qrPayload);
+        const found = (state.listing && state.listing.address === addr) ? state.listing : null;
+        if (!found) {
+          alert('No active listing found for that address.');
+          return;
+        }
+        state.scanned = JSON.parse(JSON.stringify(found));
         state.stage = 'scanned';
         renderBuyer();
       });
@@ -385,7 +462,7 @@
     });
     state.selected = null;
     state.listing = null;   // seller's listing is finished; state.scanned is
-                            // deliberately kept so the buyer sees the receipt
+    state.qrPayload = null; // deliberately kept so the buyer sees the receipt
     renderCollection();
     renderSellerListing();
     renderBuyer();
@@ -410,8 +487,10 @@
   function reset() {
     state.owner = {};
     PIECES.forEach(p => state.owner[p.id] = 'alice');
-    state.selected = null; state.listing = null; state.scanned = null;
+    state.selected = null; state.listing = null; state.qrPayload = null;
+    state.scanned = null;
     state.stage = 'idle'; state.channel = 'chain'; state.price = 1500;
+    state.lightening = 70;
     state.ledger = [];
     renderCollection(); renderSellerListing(); renderBuyer(); renderLedger();
   }

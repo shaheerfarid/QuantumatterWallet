@@ -280,3 +280,50 @@ body {
   outline: 3px solid rgba(255,106,0,0.45); outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+
+/* --- addrQR lightening slider -------------------------------------------- */
+
+.rs-slider-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 14px;
+}
+
+.rs-slider-row label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--octo-muted);
+}
+
+.rs-slider-row output {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--octo-orange-deep);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 4ch;
+}
+
+.rs-slider-row input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--octo-orange);
+  cursor: pointer;
+}
+
+.rs-slider-row input[type="range"]:focus-visible {
+  outline: 3px solid rgba(255, 106, 0, 0.45);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* The overlay renders at 423px; scale it to the pane without losing resolution */
+#rsQrCanvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+}
