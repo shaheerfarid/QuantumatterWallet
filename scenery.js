@@ -1,20 +1,22 @@
 /* ==========================================================================
    scenery.js
 
-   Demo artworks, painted procedurally.
+   Demo artworks: public-domain masterworks given a pop screenprint treatment -
+   flat colour separations, saturated non-naturalistic palettes, hard edges.
 
-   Pop-art idiom: four-panel grids, flat screenprinted colour, hard edges. A
-   style, not a copy - these are original compositions. Warhol's own works are
-   still in copyright and actively licensed, which is not something to drop into
-   an art marketplace's repo; and no real person's likeness or live trademark
-   appears here either.
+   Why this is clean. The source paintings are long out of copyright: Munch
+   died 1944, Van Gogh 1890, Hokusai 1849. Warhol's own screenprints after them
+   are NOT - those remain in copyright and are licensed by his foundation - so
+   these are drawn from the public-domain originals rather than traced from his
+   versions. Taking a public-domain masterwork and recolouring it is exactly
+   what he did; the practice is fine, copying his particular prints is not.
 
-   Drawn rather than shipped as files so there are no licensing questions, no
-   binary assets, and it works offline. Flat colour also happens to be the
-   kindest possible background for a QR overlay - far better than photographs.
+   Drawn procedurally so there are no image files, no licensing questions, and
+   it works offline. Palettes are deliberately kept bright: large dark areas
+   compete with the black modules of the QR these sit behind.
 
-   Each painter fills a square canvas, used both for the gallery thumbnail and
-   as the background behind the address QR.
+   Each painter fills a square canvas, used for both the gallery thumbnail and
+   the QR background.
    ========================================================================== */
 
 (function (global) {
@@ -26,199 +28,291 @@
     return c;
   }
 
-  /* Run a painter once per quadrant of a 2x2 grid, each with its own palette -
-     the repetition-with-recolouring that defines the look. */
-  function quadrants(s, palettes, paint) {
-    var c = makeCanvas(s), ctx = c.getContext('2d'), h = s / 2;
-    palettes.forEach(function (pal, i) {
-      var x = (i % 2) * h, y = Math.floor(i / 2) * h;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x, y, h, h);
-      ctx.clip();
-      ctx.translate(x, y);
-      paint(ctx, h, pal);
-      ctx.restore();
-    });
-    // screenprint registration gap between panels
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = Math.max(2, s * 0.008);
+  /* A band of colour with a wavy lower edge - the basic unit of the Munch sky */
+  function wavyBand(ctx, s, yTop, yBot, amp, freq, phase, fill) {
+    ctx.fillStyle = fill;
     ctx.beginPath();
-    ctx.moveTo(h, 0); ctx.lineTo(h, s);
-    ctx.moveTo(0, h); ctx.lineTo(s, h);
-    ctx.stroke();
-    return c;
-  }
-
-  function petal(ctx, cx, cy, r, rot) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(rot);
-    ctx.beginPath();
-    ctx.ellipse(0, -r * 0.62, r * 0.42, r * 0.62, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  /* --- 1. Flowers, four ways ------------------------------------------- */
-  function popBloom(s) {
-    return quadrants(s, [
-      { bg: '#f72585', flower: '#ffd60a', core: '#003049', leaf: '#06d6a0' },
-      { bg: '#06d6a0', flower: '#f72585', core: '#1d3557', leaf: '#ffd60a' },
-      { bg: '#ffd60a', flower: '#7b2ff7', core: '#f72585', leaf: '#06d6a0' },
-      { bg: '#4cc9f0', flower: '#ffd60a', core: '#f72585', leaf: '#06d6a0' }
-    ], function (ctx, h, pal) {
-      ctx.fillStyle = pal.bg;
-      ctx.fillRect(0, 0, h, h);
-
-      // leaves
-      ctx.fillStyle = pal.leaf;
-      ctx.beginPath();
-      ctx.ellipse(h * 0.30, h * 0.82, h * 0.26, h * 0.10, -0.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(h * 0.72, h * 0.86, h * 0.20, h * 0.08, 0.4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // five petals
-      ctx.fillStyle = pal.flower;
-      for (var i = 0; i < 5; i++) {
-        petal(ctx, h * 0.5, h * 0.44, h * 0.40, (i / 5) * Math.PI * 2);
-      }
-
-      // core
-      ctx.fillStyle = pal.core;
-      ctx.beginPath();
-      ctx.arc(h * 0.5, h * 0.44, h * 0.115, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-
-  /* --- 2. Anonymous portrait, repeated ---------------------------------- */
-  function popPortrait(s) {
-    return quadrants(s, [
-      { bg: '#4cc9f0', skin: '#ffd60a', hair: '#7b2ff7', body: '#f72585', ink: '#2b1a4a' },
-      { bg: '#f72585', skin: '#4cc9f0', hair: '#ffd60a', body: '#06d6a0', ink: '#2b1a4a' },
-      { bg: '#ffd60a', skin: '#f9a8d4', hair: '#7b2ff7', body: '#4cc9f0', ink: '#2b1a4a' },
-      { bg: '#06d6a0', skin: '#ffd60a', hair: '#f72585', body: '#4cc9f0', ink: '#2b1a4a' }
-    ], function (ctx, h, pal) {
-      ctx.fillStyle = pal.bg;
-      ctx.fillRect(0, 0, h, h);
-
-      // shoulders - a large mass, so a mid-tone rather than the feature ink
-      ctx.fillStyle = pal.body;
-      ctx.beginPath();
-      ctx.ellipse(h * 0.5, h * 1.08, h * 0.42, h * 0.30, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // hair mass behind the face
-      ctx.fillStyle = pal.hair;
-      ctx.beginPath();
-      ctx.ellipse(h * 0.5, h * 0.44, h * 0.33, h * 0.36, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // face
-      ctx.fillStyle = pal.skin;
-      ctx.beginPath();
-      ctx.ellipse(h * 0.5, h * 0.47, h * 0.235, h * 0.285, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // features, blocked in flat
-      ctx.fillStyle = pal.ink;
-      ctx.beginPath();
-      ctx.ellipse(h * 0.41, h * 0.45, h * 0.045, h * 0.026, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(h * 0.59, h * 0.45, h * 0.045, h * 0.026, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(h * 0.5, h * 0.62, h * 0.085, h * 0.042, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-
-  /* --- 3. Bottles on a shelf -------------------------------------------- */
-  function popBottles(s) {
-    var c = makeCanvas(s), ctx = c.getContext('2d');
-    var cols = 4, rows = 4, cw = s / cols, ch = s / rows;
-    var grounds = ['#ff5d73', '#4cc9f0', '#ffd60a', '#06d6a0'];
-    var glass   = ['#ffd60a', '#f1faee', '#ff5d73', '#7b2ff7'];
-
-    for (var r = 0; r < rows; r++) {
-      for (var k = 0; k < cols; k++) {
-        var x = k * cw, y = r * ch, i = (r + k) % 4;
-        ctx.fillStyle = grounds[i];
-        ctx.fillRect(x, y, cw, ch);
-
-        // bottle silhouette: body, shoulder, neck, cap
-        ctx.fillStyle = glass[(i + r) % 4];
-        var bw = cw * 0.40, bx = x + cw / 2 - bw / 2;
-        ctx.fillRect(bx, y + ch * 0.42, bw, ch * 0.42);
-        ctx.beginPath();
-        ctx.moveTo(bx, y + ch * 0.42);
-        ctx.lineTo(x + cw / 2 - bw * 0.17, y + ch * 0.24);
-        ctx.lineTo(x + cw / 2 + bw * 0.17, y + ch * 0.24);
-        ctx.lineTo(bx + bw, y + ch * 0.42);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillRect(x + cw / 2 - bw * 0.17, y + ch * 0.16, bw * 0.34, ch * 0.10);
-
-        ctx.fillStyle = '#2b1a4a';
-        ctx.fillRect(x + cw / 2 - bw * 0.22, y + ch * 0.12, bw * 0.44, ch * 0.055);
-        // label band, kept light so it does not read as a QR module
-        ctx.fillStyle = '#f1faee';
-        ctx.fillRect(bx, y + ch * 0.56, bw, ch * 0.11);
-      }
+    ctx.moveTo(0, yTop);
+    ctx.lineTo(s, yTop);
+    for (var x = s; x >= 0; x -= s / 40) {
+      ctx.lineTo(x, yBot + Math.sin(x / s * Math.PI * freq + phase) * amp);
     }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* --- 1. The Scream, after Munch --------------------------------------- */
+  function screamAfterMunch(s) {
+    var c = makeCanvas(s), ctx = c.getContext('2d');
+
+    // sky: stacked wavy bands
+    ctx.fillStyle = '#ffd60a';
+    ctx.fillRect(0, 0, s, s);
+    wavyBand(ctx, s, 0, s * 0.14, s * 0.035, 2.2, 0.4, '#ff5d00');
+    wavyBand(ctx, s, 0, s * 0.26, s * 0.030, 2.6, 1.9, '#ff2d55');
+    wavyBand(ctx, s, 0, s * 0.10, s * 0.022, 3.0, 0.9, '#ff8c00');
+
+    // fjord
+    wavyBand(ctx, s, s * 0.34, s * 0.52, s * 0.030, 2.0, 2.4, '#00b4d8');
+    wavyBand(ctx, s, s * 0.34, s * 0.44, s * 0.026, 2.8, 0.2, '#48cae4');
+
+    // land wedge behind the bridge
+    ctx.fillStyle = '#7b2ff7';
+    ctx.beginPath();
+    ctx.moveTo(0, s * 0.56);
+    ctx.lineTo(s * 0.62, s * 0.40);
+    ctx.lineTo(s, s * 0.47);
+    ctx.lineTo(s, s);
+    ctx.lineTo(0, s);
+    ctx.closePath();
+    ctx.fill();
+
+    // bridge: strong diagonal, the picture's spine
+    ctx.fillStyle = '#f72585';
+    ctx.beginPath();
+    ctx.moveTo(0, s * 1.02);
+    ctx.lineTo(0, s * 0.78);
+    ctx.lineTo(s * 0.98, s * 0.40);
+    ctx.lineTo(s, s * 0.52);
+    ctx.lineTo(s * 0.30, s);
+    ctx.closePath();
+    ctx.fill();
+
+    // railing
+    ctx.strokeStyle = '#2b1a4a';
+    ctx.lineWidth = Math.max(2, s * 0.012);
+    ctx.beginPath();
+    ctx.moveTo(0, s * 0.70);
+    ctx.lineTo(s * 0.97, s * 0.355);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(1.5, s * 0.008);
+    for (var i = 0; i < 7; i++) {
+      var t = i / 7, x = t * s * 0.97;
+      ctx.beginPath();
+      ctx.moveTo(x, s * (0.70 - t * 0.345));
+      ctx.lineTo(x, s * (0.70 - t * 0.345) + s * 0.10);
+      ctx.stroke();
+    }
+
+    // two distant figures
+    ctx.fillStyle = '#2b1a4a';
+    [[0.74, 0.44], [0.83, 0.40]].forEach(function (f) {
+      ctx.beginPath();
+      ctx.ellipse(s * f[0], s * f[1], s * 0.022, s * 0.055, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // the figure: wavy robe, bald oval head, hands at the cheeks
+    ctx.fillStyle = '#4cc9f0';
+    ctx.beginPath();
+    ctx.moveTo(s * 0.30, s * 1.02);
+    ctx.quadraticCurveTo(s * 0.20, s * 0.74, s * 0.30, s * 0.60);
+    ctx.quadraticCurveTo(s * 0.37, s * 0.50, s * 0.41, s * 0.52);
+    ctx.quadraticCurveTo(s * 0.50, s * 0.62, s * 0.49, s * 1.02);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ffe066';
+    ctx.beginPath();
+    ctx.ellipse(s * 0.375, s * 0.455, s * 0.072, s * 0.098, 0.06, 0, Math.PI * 2);
+    ctx.fill();
+
+    // hands
+    ctx.beginPath();
+    ctx.ellipse(s * 0.295, s * 0.50, s * 0.030, s * 0.055, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(s * 0.455, s * 0.49, s * 0.030, s * 0.055, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // hollow eyes, open mouth
+    ctx.fillStyle = '#2b1a4a';
+    ctx.beginPath();
+    ctx.ellipse(s * 0.352, s * 0.432, s * 0.014, s * 0.021, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(s * 0.400, s * 0.430, s * 0.014, s * 0.021, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(s * 0.376, s * 0.505, s * 0.019, s * 0.034, 0, 0, Math.PI * 2);
+    ctx.fill();
     return c;
   }
 
-  /* --- 4. Benday starburst ---------------------------------------------- */
-  function popBurst(s) {
+  /* --- 2. The Great Wave, after Hokusai --------------------------------- */
+  function waveAfterHokusai(s) {
     var c = makeCanvas(s), ctx = c.getContext('2d');
     ctx.fillStyle = '#ffd60a';
     ctx.fillRect(0, 0, s, s);
 
-    // halftone field
-    ctx.fillStyle = '#e63946';
-    var step = s / 26, rad = step * 0.26;
-    for (var y = step / 2; y < s; y += step) {
-      for (var x = step / 2; x < s; x += step) {
-        ctx.beginPath();
-        ctx.arc(x, y, rad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // rays
-    ctx.fillStyle = '#4cc9f0';
-    var cx = s * 0.5, cy = s * 0.5, spikes = 14;
+    // Fuji
+    ctx.fillStyle = '#7b2ff7';
     ctx.beginPath();
-    for (var i = 0; i < spikes * 2; i++) {
-      var ang = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
-      var rr = i % 2 ? s * 0.20 : s * 0.52;
-      ctx[i ? 'lineTo' : 'moveTo'](cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr);
-    }
+    ctx.moveTo(s * 0.52, s * 0.64);
+    ctx.lineTo(s * 0.70, s * 0.40);
+    ctx.lineTo(s * 0.88, s * 0.64);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f1faee';
+    ctx.beginPath();
+    ctx.moveTo(s * 0.636, s * 0.485);
+    ctx.lineTo(s * 0.70, s * 0.40);
+    ctx.lineTo(s * 0.764, s * 0.485);
     ctx.closePath();
     ctx.fill();
 
-    // centre
+    // sea
+    ctx.fillStyle = '#00b4d8';
+    ctx.beginPath();
+    ctx.moveTo(0, s * 0.70);
+    for (var x = 0; x <= s; x += s / 30) {
+      ctx.lineTo(x, s * 0.70 + Math.sin(x / s * Math.PI * 3) * s * 0.03);
+    }
+    ctx.lineTo(s, s); ctx.lineTo(0, s);
+    ctx.closePath();
+    ctx.fill();
+
+    // the great wave: body
+    ctx.fillStyle = '#0077b6';
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.05, s * 0.86);
+    ctx.quadraticCurveTo(s * 0.02, s * 0.22, s * 0.44, s * 0.20);
+    ctx.quadraticCurveTo(s * 0.70, s * 0.20, s * 0.60, s * 0.46);
+    ctx.quadraticCurveTo(s * 0.52, s * 0.30, s * 0.30, s * 0.42);
+    ctx.quadraticCurveTo(s * 0.16, s * 0.52, s * 0.22, s * 0.88);
+    ctx.closePath();
+    ctx.fill();
+
+    // foam crest + claw fingers
     ctx.fillStyle = '#f1faee';
     ctx.beginPath();
-    ctx.arc(cx, cy, s * 0.145, 0, Math.PI * 2);
+    ctx.moveTo(s * 0.06, s * 0.40);
+    ctx.quadraticCurveTo(s * 0.10, s * 0.24, s * 0.44, s * 0.225);
+    ctx.quadraticCurveTo(s * 0.62, s * 0.225, s * 0.585, s * 0.40);
+    ctx.quadraticCurveTo(s * 0.55, s * 0.27, s * 0.40, s * 0.285);
+    ctx.quadraticCurveTo(s * 0.17, s * 0.30, s * 0.135, s * 0.44);
+    ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#2b1a4a';
+    [[0.46, 0.255], [0.53, 0.29], [0.57, 0.35]].forEach(function (f, i) {
+      ctx.beginPath();
+      ctx.arc(s * f[0], s * f[1], s * (0.040 - i * 0.008), 0, Math.PI * 2);
+      ctx.fill();
+    });
+    return c;
+  }
+
+  /* --- 3. Starry Night, after Van Gogh ---------------------------------- */
+  function starryAfterVanGogh(s) {
+    var c = makeCanvas(s), ctx = c.getContext('2d');
+    ctx.fillStyle = '#4cc9f0';
+    ctx.fillRect(0, 0, s, s);
+
+    // swirl
+    ctx.strokeStyle = '#ffd60a';
+    ctx.lineWidth = Math.max(3, s * 0.022);
     ctx.beginPath();
-    ctx.arc(cx, cy, s * 0.072, 0, Math.PI * 2);
+    for (var a = 0; a < Math.PI * 5; a += 0.12) {
+      var r = s * 0.02 + a * s * 0.027;
+      var x = s * 0.42 + Math.cos(a) * r, y = s * 0.33 + Math.sin(a) * r * 0.72;
+      a ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+
+    // stars as flat concentric discs
+    [[0.14, 0.18, 0.062], [0.78, 0.17, 0.052], [0.88, 0.40, 0.040], [0.25, 0.47, 0.034]]
+      .forEach(function (st) {
+        ctx.fillStyle = '#fff3b0';
+        ctx.beginPath(); ctx.arc(s * st[0], s * st[1], s * st[2], 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff8c00';
+        ctx.beginPath(); ctx.arc(s * st[0], s * st[1], s * st[2] * 0.52, 0, Math.PI * 2); ctx.fill();
+      });
+
+    // cypress, flame-shaped
+    ctx.fillStyle = '#7b2ff7';
+    ctx.beginPath();
+    ctx.moveTo(s * 0.17, s);
+    ctx.quadraticCurveTo(s * 0.02, s * 0.58, s * 0.14, s * 0.10);
+    ctx.quadraticCurveTo(s * 0.26, s * 0.52, s * 0.29, s);
+    ctx.closePath();
+    ctx.fill();
+
+    // village
+    ctx.fillStyle = '#06d6a0';
+    ctx.fillRect(0, s * 0.80, s, s * 0.20);
+    ctx.fillStyle = '#f72585';
+    for (var i = 0; i < 6; i++) {
+      var bx = s * (0.30 + i * 0.115), bh = s * (0.07 + (i % 3) * 0.035);
+      ctx.fillRect(bx, s * 0.82 - bh, s * 0.085, bh + s * 0.04);
+    }
+    // church spire
+    ctx.beginPath();
+    ctx.moveTo(s * 0.60, s * 0.76);
+    ctx.lineTo(s * 0.645, s * 0.60);
+    ctx.lineTo(s * 0.69, s * 0.76);
+    ctx.closePath();
     ctx.fill();
     return c;
   }
 
+  /* --- 4. Sunflowers, after Van Gogh ------------------------------------ */
+  function sunflowersAfterVanGogh(s) {
+    var c = makeCanvas(s), ctx = c.getContext('2d');
+    ctx.fillStyle = '#00b4d8';
+    ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#ff2d55';
+    ctx.fillRect(0, s * 0.70, s, s * 0.30);
+
+    // vase
+    ctx.fillStyle = '#ffd60a';
+    ctx.beginPath();
+    ctx.moveTo(s * 0.34, s * 0.66);
+    ctx.lineTo(s * 0.66, s * 0.66);
+    ctx.lineTo(s * 0.61, s * 0.95);
+    ctx.lineTo(s * 0.39, s * 0.95);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f1faee';
+    ctx.fillRect(s * 0.34, s * 0.745, s * 0.32, s * 0.055);
+
+    // stems
+    ctx.strokeStyle = '#06d6a0';
+    ctx.lineWidth = Math.max(3, s * 0.018);
+    var heads = [[0.28, 0.30, 0.125], [0.50, 0.19, 0.145], [0.72, 0.31, 0.120],
+                 [0.38, 0.47, 0.098], [0.63, 0.48, 0.098]];
+    heads.forEach(function (h) {
+      ctx.beginPath();
+      ctx.moveTo(s * 0.50, s * 0.66);
+      ctx.quadraticCurveTo(s * ((0.50 + h[0]) / 2), s * 0.52, s * h[0], s * h[1]);
+      ctx.stroke();
+    });
+
+    // flower heads: ring of flat petals + dark centre
+    heads.forEach(function (h) {
+      var cx = s * h[0], cy = s * h[1], r = s * h[2];
+      ctx.fillStyle = '#ffd60a';
+      for (var i = 0; i < 12; i++) {
+        var ang = (i / 12) * Math.PI * 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ang);
+        ctx.beginPath();
+        ctx.ellipse(0, -r * 0.66, r * 0.21, r * 0.46, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = '#ff8c00';
+      ctx.beginPath(); ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#7b2ff7';
+      ctx.beginPath(); ctx.arc(cx, cy, r * 0.30, 0, Math.PI * 2); ctx.fill();
+    });
+    return c;
+  }
+
   var PAINTERS = {
-    popBloom: popBloom,
-    popPortrait: popPortrait,
-    popBottles: popBottles,
-    popBurst: popBurst
+    screamAfterMunch: screamAfterMunch,
+    waveAfterHokusai: waveAfterHokusai,
+    starryAfterVanGogh: starryAfterVanGogh,
+    sunflowersAfterVanGogh: sunflowersAfterVanGogh
   };
 
   var cache = {};

@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="QuantumatterWallet.css?v=4">
-  <link rel="stylesheet" href="resale.css?v=4">
+  <link rel="stylesheet" href="QuantumatterWallet.css?v=5">
+  <link rel="stylesheet" href="resale.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
-  <script src="scenery.js?v=4"></script>
-  <script src="addrQrOverlay.js?v=4"></script>
+  <script src="scenery.js?v=5"></script>
+  <script src="addrQrOverlay.js?v=5"></script>
 </head>
 <body>
 
@@ -157,11 +157,14 @@
     return urlCache[name];
   }
 
+  /* Public-domain masterworks in a pop screenprint treatment. Titled "after X"
+     because that is what they are - the originals are out of copyright, the
+     recolouring is ours. */
   const PIECES = [
-    { id: 'ART-041', title: 'Bloom, Four Ways',  scene: 'popBloom'    },
-    { id: 'ART-067', title: 'Sitter, Repeated',  scene: 'popPortrait' },
-    { id: 'ART-088', title: 'Sixteen Bottles',   scene: 'popBottles'  },
-    { id: 'ART-095', title: 'Benday Burst',      scene: 'popBurst'    }
+    { id: 'ART-041', title: 'The Scream, after Munch',   scene: 'screamAfterMunch'       },
+    { id: 'ART-067', title: 'Great Wave, after Hokusai', scene: 'waveAfterHokusai'       },
+    { id: 'ART-088', title: 'Starry Night, after Van Gogh', scene: 'starryAfterVanGogh'  },
+    { id: 'ART-095', title: 'Sunflowers, after Van Gogh',   scene: 'sunflowersAfterVanGogh' }
   ].map(p => Object.assign(p, { art: sceneBackground(p.scene) }));
 
   const state = {
