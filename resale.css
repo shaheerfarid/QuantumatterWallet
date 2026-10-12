@@ -1,13 +1,77 @@
 /* ==========================================================================
    Articulator AI - peer-to-peer artwork resale (demo)
 
-   Shows BOTH sides of a resale on one page so the handoff is visible:
-   seller raises a listing and shows a code, buyer scans it and pays.
-   In the real app the seller half lives in the wallet's My Collection and the
-   buyer half is the wallet's existing camera scanner - they'd be on two phones.
-
-   Loads QuantumatterWallet.css first for the shared --octo-* tokens and fonts.
+   Standalone: this page carries its own design tokens and the two component
+   styles it borrows, so it can be served on its own without the wallet's
+   stylesheet. The values below are copied from QuantumatterWallet.css - keep
+   them in step if the wallet's palette changes.
    ========================================================================== */
+
+:root {
+  --octo-orange: #ff6a00;
+  --octo-orange-deep: #e85d04;
+  --octo-cream: #fffaf5;
+  --octo-paper: #ffffff;
+  --octo-ink: #1f1f24;
+  --octo-muted: #766a61;
+  --octo-label: #8a7a6e;
+  --octo-hairline: rgba(72, 35, 0, 0.1);
+  --octo-shadow: 0 1px 2px rgba(72, 35, 0, 0.04), 0 8px 24px rgba(232, 93, 4, 0.07);
+  --radius-card: 16px;
+  --radius-inner: 12px;
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* --- the two shared components this page uses ---------------------------- */
+
+.input-field {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--octo-hairline);
+  border-radius: var(--radius-inner);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  background: rgba(255, 250, 245, 0.98);
+  color: var(--octo-ink);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.input-field::placeholder { color: rgba(31, 31, 36, 0.42); }
+
+.input-field:focus {
+  outline: none;
+  border-color: rgba(255, 106, 0, 0.5);
+  box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.12);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: linear-gradient(135deg, var(--octo-orange), var(--octo-orange-deep));
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(232, 93, 4, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px rgba(232, 93, 4, 0.3);
+}
+
+.btn-primary:focus-visible,
+.input-field:focus-visible {
+  outline: 3px solid rgba(255, 106, 0, 0.45);
+  outline-offset: 2px;
+}
 
 body {
   display: block;
